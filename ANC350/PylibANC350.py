@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
+'''
 Created on Fri Jul  5 16:11:11 2019
 
 @author: schaecl
-"""
+'''
 
 import ctypes
 import os
@@ -130,8 +130,10 @@ def discover_ACN350(ifaces=3):
     print('{:} ANC350 devices found.'.format(devCount.value))
     return devCount.value
 
-class Positioner:
-
+class Positioner_ACN350:
+    '''
+    Class of a positioner connected to the ANC350.
+    '''
     def __init__(self):
         print('Enter __init__')
 
@@ -493,6 +495,7 @@ class Positioner:
                                ctypes.byref(error))
 
         print('Status of axis', axisNo,
+              '\n'
               'Connected          {:}\n'
               'Enabled            {:}\n'
               'Moving             {:}\n'
@@ -535,243 +538,343 @@ class Positioner:
         featureDuty = (0x04 & features.value) / 4
         featureApp = (0x08 & features.value) / 8
 
+        print('Device configuration \n'
+              'Sync   {:}\n'
+              'Lockin {:}\n'
+              'Duty   {:}\n'
+              'App    {:}\n'.format(featureSync,
+                                    featureLockin,
+                                    featureDuty,
+                                    featureApp))
+
         return featureSync, featureLockin, featureDuty, featureApp
 
     def getDeviceInfo(self, devNo=0):
         '''
-        Returns available information about a device. The function can not be called before ANC_discover but the devices don't have to be connected . All Pointers to output parameters may be zero to ignore the respective value.
+        Returns available information about a device. The function can not be
+        called before ANC_discover but the devices don't have to be connected.
+        All pointers to output parameters may be zero to ignore the respective
+        value.
 
         Parameters
-            devNo	Sequence number of the device. Must be smaller than the devCount from the last ANC_discover call. Default: 0
+        ----------
+        devNo : int
+            Sequence number of the device. Must be smaller than the devCount
+            from the last ANC_discover call. Default: 0.
+
         Returns
-            devType	Output: Type of the ANC350 device. {0: Anc350Res, 1:Anc350Num, 2:Anc350Fps, 3:Anc350None}
-            id	Output: programmed hardware ID of the device
-            serialNo	Output: The device's serial number. The string buffer should be NULL or at least 16 bytes long.
-            address	Output: The device's interface address if applicable. Returns the IP address in dotted-decimal notation or the string "USB", respectively. The string buffer should be NULL or at least 16 bytes long.
-            connected	Output: If the device is already connected
+        -------
+        devType : int
+            Type of the ANC350 device:
+            {0: Anc350Res, 1: Anc350Num, 2: Anc350Fps, 3: Anc350None}
+        id : int
+            Hardware ID of the device
+        serialNo : str
+            The device's serial number.
+        address : str
+            The device's interface address if applicable. Returns the
+            IP address in dotted-decimal notation or the string "USB",
+            respectively.
+        connected : int
+            If the device is already connected
         '''
         devType = ctypes.c_int()
         id_ = ctypes.c_int()
-        serialNo = ctypes.create_string_buffer(16)
-        address = ctypes.create_string_buffer(16)
+        serialNo = ctypes.create_string_buffer(32)
+        address = ctypes.create_string_buffer(32)
         connected = ctypes.c_int()
 
-        self.getDeviceInfo_dll(devNo, ctypes.byref(devType), ctypes.byref(id_), ctypes.byref(serialNo), ctypes.byref(address), ctypes.byref(connected))
-        return devType.value, id_.value, serialNo.value.decode('utf-8'), address.value.decode('utf-8'), connected.value
+        self.getDeviceInfo_dll(ctypes.c_uint(devNo),
+                               ctypes.byref(devType),
+                               ctypes.byref(id_),
+                               ctypes.byref(serialNo),
+                               ctypes.byref(address),
+                               ctypes.byref(connected))
 
+        print('Device info of #', devNo,
+              '\n'
+              'Type        {:}\n'
+              'Hardware ID {:}\n'
+              'Serial No   {:}\n'
+              'Address     {:}\n'
+              'Connected   {:}'.format(devType.value,
+                                       id_.value,
+                                       serialNo.value.decode('utf-8'),
+                                       address.value.decode('utf-8'),
+                                       connected.value))
+
+        return devType.value, \
+               id_.value, \
+               serialNo.value.decode('utf-8'), \
+               address.value.decode('utf-8'), \
+               connected.value
 
     def getFirmwareVersion(self):
         '''
         Retrieves the version of currently loaded firmware.
 
-        Parameters
-            None
         Returns
-            version	Output: Version number
+        -------
+        version : int
+            Version number
         '''
         version = ctypes.c_int()
-        self.getFirmwareVersion_dll(self.device, ctypes.byref(version))
+        self.getFirmwareVersion_dll(self.device,
+                                    ctypes.byref(version))
         return version.value
-
 
     def getFrequency(self, axisNo):
         '''
         Reads back the frequency parameter of an axis.
 
         Parameters
-            axisNo	Axis number (0 ... 2)
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+
         Returns
-            frequency	Output: Frequency in Hz
+        -------
+        frequency : float
+            Frequency in Hz
         '''
         frequency = ctypes.c_double()
-        self.getFrequency_dll(self.device, axisNo, ctypes.byref(frequency))
+        self.getFrequency_dll(self.device,
+                              ctypes.c_uint(axisNo),
+                              ctypes.byref(frequency))
         return frequency.value
-
 
     def getPosition(self, axisNo):
         '''
-        Retrieves the current actuator position. For linear type actuators the position unit is m; for goniometers and rotators it is degree.
+        Retrieves the current actuator position. For linear type actuators the
+        position unit is m; for goniometers and rotators it is degree.
 
         Parameters
-            axisNo	Axis number (0 ... 2)
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+
         Returns
-            position	Output: Current position [m] or [°]
+        -------
+        position : float
+            Current position m or deg
         '''
         position = ctypes.c_double()
-        self.getPosition_dll(self.device, axisNo, ctypes.byref(position))
+        self.getPosition_dll(self.device,
+                             ctypes.c_uint(axisNo),
+                             ctypes.byref(position))
         return position.value
-
 
     def measureCapacitance(self, axisNo):
         '''
-        Performs a measurement of the capacitance of the piezo motor and returns the result. If no motor is connected, the result will be 0. The function doesn't return before the measurement is complete; this will take a few seconds of time.
+        Performs a measurement of the capacitance of the piezo motor and
+        returns the result. If no motor is connected, the result will be 0.
+        The function doesn't return before the measurement is complete; this
+        will take a few seconds of time.
 
         Parameters
-            axisNo	Axis number (0 ... 2)
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+
         Returns
-            cap	Output: Capacitance [F]
+        -------
+        cap : float
+            Output: Capacitance in F
         '''
         cap = ctypes.c_double()
-        self.measureCapacitance_dll(self.device, axisNo, ctypes.byref(cap))
+        self.measureCapacitance_dll(self.device,
+                                    ctypes.c_uint(axisNo),
+                                    ctypes.byref(cap))
         return cap.value
-
 
     def saveParams(self):
         '''
-        Saves parameters to persistent flash memory in the device. They will be present as defaults after the next power-on. The following parameters are affected: Amplitude, frequency, actuator selections as well as Trigger and quadrature settings.
-
-        Parameters
-            None
-        Returns
-            None
+        Saves parameters to persistent flash memory in the device. They will be
+        present as defaults after the next power-on. The following parameters
+        are affected: Amplitude, frequency, actuator selections as well as
+        trigger and quadrature settings.
         '''
         self.saveParams_dll(self.device)
-
 
     def selectActuator(self, axisNo, actuator):
         '''
         Selects the actuator to be used for the axis from actuator presets.
 
         Parameters
-            axisNo	Axis number (0 ... 2)
-            actuator	Actuator selection (0 ... 255)
-                0: ANPx51
-                1: ANPz51
-                2: ANPz51ext
-                3: ANPx101
-                4: ANPz101
-                5: ANPz102
-                6: ANPz101ext
-                7: ANPz111ext
-                8: ANPx111ext
-                9: ANPx121
-                10: ANPx311
-                11: ANPx321
-        Returns
-            None
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+        actuator : int
+            Actuator selection (0 ... 255)
+            0: ANPx51
+            1: ANPz51
+            2: ANPz51ext
+            3: ANPx101
+            4: ANPz101
+            5: ANPz102
+            6: ANPz101ext
+            7: ANPz111ext
+            8: ANPx111ext
+            9: ANPx121
+            10: ANPx311
+            11: ANPx321
         '''
-        self.selectActuator_dll(self.device, axisNo, actuator)
-
+        self.selectActuator_dll(self.device,
+                                ctypes.c_uint(axisNo),
+                                ctypes.c_uint(actuator))
 
     def setAmplitude(self, axisNo, amplitude):
         '''
-        Sets the amplitude parameter for an axis
+        Sets the amplitude parameter in V for an axis.
 
         Parameters
-            axisNo	Axis number (0 ... 2)
-            amplitude	Amplitude in V, internal resolution is 1 mV
-        Returns
-            None
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+        amplitude : float
+            Amplitude in V, internal resolution is 1 mV
         '''
-        self.setAmplitude_dll(self.device, axisNo, ctypes.c_double(amplitude))
-
+        self.setAmplitude_dll(self.device,
+                              ctypes.c_uint(axisNo),
+                              ctypes.c_double(amplitude))
 
     def setAxisOutput(self, axisNo, enable, autoDisable):
         '''
         Enables or disables the voltage output of an axis.
 
         Parameters
-            axisNo	Axis number (0 ... 2)
-            enable	Enables (1) or disables (0) the voltage output.
-            autoDisable	If the voltage output is to be deactivated automatically when end of travel is detected. Enable voltage deactivation(1), Disable voltage deactivation(0)
-        Returns
-            None
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+        enable : int
+            Enables (1) or disables (0) the voltage output.
+        autoDisable : int
+            If the voltage output is to be deactivated automatically when end
+            of travel is detected. Enable voltage deactivation (1), disable
+            voltage deactivation (0).
         '''
-        self.setAxisOutput_dll(self.device, axisNo, enable, autoDisable)
-
+        self.setAxisOutput_dll(self.device,
+                               ctypes.c_uint(axisNo),
+                               ctypes.c_int(enable),
+                               ctypes.c_int(autoDisable))
 
     def setDcVoltage(self, axisNo, voltage):
         '''
-        Sets the DC level on the voltage output when no sawtooth based motion is active.
+        Sets the DC level on the voltage output when no sawtooth based motion
+        is active.
 
-            Parameters
-            axisNo	Axis number (0 ... 2)
-            voltage	DC output voltage [V], internal resolution is 1 mV
-        Returns
-            None
+        Parameters
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+        voltage : float
+            DC output voltage V, internal resolution is 1 mV
         '''
-        self.setDcVoltage_dll(self.device, axisNo, ctypes.c_double(voltage))
-
+        self.setDcVoltage_dll(self.device,
+                              ctypes.c_uint(axisNo),
+                              ctypes.c_double(voltage))
 
     def setFrequency(self, axisNo, frequency):
         '''
-        Sets the frequency parameter for an axis
+        Sets the frequency parameter for an axis.
 
         Parameters
-            axisNo	Axis number (0 ... 2)
-            frequency	Frequency in Hz, internal resolution is 1 Hz
-        Returns
-            None
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+        frequency : float
+            Frequency in Hz, internal resolution is 1 Hz
         '''
-        self.setFrequency_dll(self.device, axisNo, ctypes.c_double(frequency))
-
+        self.setFrequency_dll(self.device,
+                              ctypes.c_uint(axisNo),
+                              ctypes.c_double(frequency))
 
     def setTargetPosition(self, axisNo, target):
         '''
-        Sets the target position for automatic motion, see ANC_startAutoMove. For linear type actuators the position unit is m, for goniometers and rotators it is degree.
+        Sets the target position for automatic motion, see startAutoMove.
+        For linear type actuators the position unit is m, for goniometers and
+        rotators it is degree.
 
         Parameters
-            axisNo	Axis number (0 ... 2)
-            target	Target position [m] or [°]. Internal resulution is 1 nm or 1 µ°.
-        Returns
-            None
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+        target : float
+            Target position m or deg. Internal resulution is 1 nm or 1 µdeg.
         '''
-        self.setTargetPosition_dll(self.device, axisNo, ctypes.c_double(target))
-
+        self.setTargetPosition_dll(self.device,
+                                   ctypes.c_uint(axisNo),
+                                   ctypes.c_double(target))
 
     def setTargetRange(self, axisNo, targetRg):
         '''
-        Defines the range around the target position where the target is considered to be reached.
+        Defines the range around the target position where the target is
+        considered to be reached.
 
         Parameters
-            axisNo	Axis number (0 ... 2)
-            targetRg	Target range [m] or [°]. Internal resulution is 1 nm or 1 µ°.
-        Returns
-            None
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+        targetRg : float
+            Target range m or deg. Internal resulution is 1 nm or 1 µdeg.
         '''
-        self.setTargetRange_dll(self.device, axisNo, ctypes.c_double(targetRg))
-
+        self.setTargetRange_dll(self.device,
+                                ctypes.c_uint(axisNo),
+                                ctypes.c_double(targetRg))
 
     def startAutoMove(self, axisNo, enable, relative):
         '''
         Switches automatic moving (i.e. following the target position) on or off
 
         Parameters
-            axisNo	Axis number (0 ... 2)
-            enable	Enables (1) or disables (0) automatic motion
-            relative	If the target position is to be interpreted absolute (0) or relative to the current position (1)
-        Returns
-            None
+        axisNo : int
+            Axis number (0 ... 2)
+        enable : int
+            Enables (1) or disables (0) automatic motion
+        relative : int
+            If the target position is to be interpreted absolute (0) or
+            relative to the current position (1)
         '''
-        self.startAutoMove_dll(self.device, axisNo, enable, relative)
-
+        self.startAutoMove_dll(self.device,
+                               ctypes.c_uint(axisNo),
+                               ctypes.c_int(enable),
+                               ctypes.c_int(relative))
 
     def startContinuousMove(self, axisNo, start, backward):
         '''
-        Starts or stops continous motion in forward direction. Other kinds of motions are stopped.
+        Starts or stops continuous motion in forward direction. Other kinds of
+        motions are stopped.
 
         Parameters
-            axisNo	Axis number (0 ... 2)
-            start	Starts (1) or stops (0) the motion
-            backward	If the move direction is forward (0) or backward (1)
-        Returns
-            None
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+        start L int
+            Starts (1) or stops (0) the motion
+        backward : int
+            If the move direction is forward (0) or backward (1)
         '''
-        self.startContinousMove_dll(self.device, axisNo, start, backward)
+        self.startContinousMove_dll(self.device,
+                                    ctypes.c_uint(axisNo),
+                                    ctypes.c_int(start),
+                                    ctypes.c_int(backward))
 
     def startSingleStep(self, axisNo, backward):
         '''
         Triggers a single step in desired direction.
 
         Parameters
-            axisNo	Axis number (0 ... 2)
-            backward	If the step direction is forward (0) or backward (1)
-        Returns
-            None
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+        backward : int
+            If the step direction is forward (0) or backward (1)
         '''
-        self.startSingleStep_dll(self.device, axisNo, backward)
+        self.startSingleStep_dll(self.device,
+                                 ctypes.c_uint(axisNo),
+                                 ctypes.c_int(backward))
 
 if __name__ == '__main__':
-    anc350 = Positioner()
+    anc350 = Positioner_ACN350()
     anc350.getAxisStatus(2)
     anc350.disconnect()
