@@ -91,7 +91,6 @@ def load_ANC350dll():
     anc : ctypes
         Instance of the LoadLibrary method
     '''
-    #
     root_path = os.path.dirname(os.path.realpath(__file__))
 
     if os.name == 'nt': # Windows
@@ -176,21 +175,7 @@ class Positioner_ANC350:
     def __init__(self):
         print('Enter __init__')
 
-        # Import dll. Pay attention to have libusb0 available too.
-        root_path = os.path.dirname(os.path.realpath(__file__))
-
-        if os.name == 'nt': # Windows
-            lib_path = os.path.join(root_path, 'win64')
-            lib = os.path.join(lib_path, 'anc350v4.dll')
-            if not os.path.isfile(lib):
-                raise FileNotFoundError('Error: can not find win64\anc350v4.dll')
-            anc = ctypes.cdll.LoadLibrary(lib)
-        else: # Assume Linux-like
-            lib_path = os.path.join(root_path, 'linux64')
-            lib = os.path.join(lib_path, 'libanc350v4.so')
-            if not os.path.isfile(lib):
-                raise FileNotFoundError('Error: can not find linux\anc350v4.so')
-            anc = ctypes.cdll.LoadLibrary(lib)
+        anc = load_ANC350dll()
 
         # Aliases for the functions from the dll. Also for handling return
         # values: '.errcheck' is an attribute from ctypes.
@@ -429,14 +414,14 @@ class Positioner_ANC350:
         device = ctypes.c_void_p()
         self._connect_dll(devNo,
                           ctypes.byref(device))
-        print('ANC350 found at ', device.value)
+        print('ANC350 found at', device.value)
         return device
 
     def disconnect(self):
         '''
         Closes the connection to the device. The device handle becomes invalid.
         '''
-        print('Disconnectting ANC350 at ', self.device.value)
+        print('Disconnecting ANC350 from', self.device.value)
         self._disconnect_dll(self.device)
 
     def getActuatorName(self, axisNo):
@@ -586,7 +571,8 @@ class Positioner_ANC350:
         featureDuty = (0x04 & features.value) / 4
         featureApp = (0x08 & features.value) / 8
 
-        print('Device configuration \n'
+        print('Device configuration\n'
+              '--------------------\n'
               'Sync   {:}\n'
               'Lockin {:}\n'
               'Duty   {:}\n'
@@ -803,6 +789,7 @@ class Positioner_ANC350:
             9: ANPx121
             10: ANPx311
             11: ANPx321
+            @todo: test numbering
         '''
         self._selectActuator_dll(self.device,
                                  ctypes.c_uint(axisNo),
