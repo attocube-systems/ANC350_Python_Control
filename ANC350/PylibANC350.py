@@ -81,7 +81,35 @@ def errcheck(code, func, args):
                            ' with parameters: ' + str(args))
     return code
 
-def discover_ACN350(ifaces=3):
+def load_ANC350dll():
+    '''
+    Import dll to communicate with ANC350. Pay attention to have libusb0
+    available too.
+
+    Returns
+    -------
+    anc : ctypes
+        Instance of the LoadLibrary method
+    '''
+    #
+    root_path = os.path.dirname(os.path.realpath(__file__))
+
+    if os.name == 'nt': # Windows
+        lib_path = os.path.join(root_path, 'win64')
+        lib = os.path.join(lib_path, 'anc350v4.dll')
+        if not os.path.isfile(lib):
+            raise FileNotFoundError('Error: can not find win64\anc350v4.dll')
+        anc = ctypes.cdll.LoadLibrary(lib)
+    else: # Assume Linux-like
+        lib_path = os.path.join(root_path, 'linux64')
+        lib = os.path.join(lib_path, 'libanc350v4.so')
+        if not os.path.isfile(lib):
+            raise FileNotFoundError('Error: can not find linux\anc350v4.so')
+        anc = ctypes.cdll.LoadLibrary(lib)
+
+    return anc
+
+def discover_ANC350(ifaces=3):
     '''
     The function searches for connected ANC350RES devices on USB and LAN
     and initialises internal data structures per device. Devices that are
@@ -104,22 +132,7 @@ def discover_ACN350(ifaces=3):
     devCount : int
         Number of devices found
     '''
-
-    # Import dll. Pay attention to have libusb0 available too.
-    root_path = os.path.dirname(os.path.realpath(__file__))
-
-    if os.name == 'nt': # Windows
-        lib_path = os.path.join(root_path, 'win64')
-        lib = os.path.join(lib_path, 'anc350v4.dll')
-        if not os.path.isfile(lib):
-            raise FileNotFoundError('Error: can not find win64\anc350v4.dll')
-        anc = ctypes.cdll.LoadLibrary(lib)
-    else: # Assume Linux-like
-        lib_path = os.path.join(root_path, 'linux64')
-        lib = os.path.join(lib_path, 'libanc350v4.so')
-        if not os.path.isfile(lib):
-            raise FileNotFoundError('Error: can not find linux\anc350v4.so')
-        anc = ctypes.cdll.LoadLibrary(lib)
+    anc = load_ANC350dll()
 
     discover_dll = anc.ANC_discover
     discover_dll.errcheck = errcheck
@@ -130,7 +143,33 @@ def discover_ACN350(ifaces=3):
     print('{:} ANC350 devices found.'.format(devCount.value))
     return devCount.value
 
-class Positioner_ACN350:
+def registerExternalIp(hostname):
+    '''
+    discover is able to find devices connected via TCP/IP
+    in the same network segment, but it can't "look through" routers.
+    To connect devices in external networks, reachable by routing,
+    the IP addresses of those devices have to be registered prior to
+    calling discover. The function registers one device and can
+    be called several times.
+
+    The function will return ANC_Ok if the name resolution succeeds
+    (ANC_NoDevice otherwise); it *doesn't test* if the device is reachable.
+    Registered and reachable devices will be found by discover.
+
+    Parameters
+    ----------
+    hostname : str
+        hostname or IP Address in dotted decimal notation of the device to
+        register.
+    '''
+    anc = load_ANC350dll()
+
+    registerExternalIp_dll = anc.ANC_registerExternalIp
+    registerExternalIp_dll.errcheck = errcheck
+
+    registerExternalIp_dll(ctypes.c_char_p(hostname)) # @todo check
+
+class Positioner_ANC350:
     '''
     Class of a positioner connected to the ANC350.
     '''
@@ -155,70 +194,79 @@ class Positioner_ACN350:
 
         # Aliases for the functions from the dll. Also for handling return
         # values: '.errcheck' is an attribute from ctypes.
-        self.getDeviceInfo_dll = anc.ANC_getDeviceInfo
-        self.getDeviceInfo_dll.errcheck = errcheck
-        self.connect_dll = anc.ANC_connect
-        self.connect_dll.errcheck = errcheck
-        self.disconnect_dll = anc.ANC_disconnect
-        self.disconnect_dll.errcheck = errcheck
-        self.getDeviceConfig_dll = anc.ANC_getDeviceConfig
-        self.getDeviceConfig_dll.errcheck = errcheck
-        self.getAxisStatus_dll = anc.ANC_getAxisStatus
-        self.getAxisStatus_dll.errcheck = errcheck
-        self.setAxisOutput_dll = anc.ANC_setAxisOutput
-        self.setAxisOutput_dll.errcheck = errcheck
-        self.setAmplitude_dll = anc.ANC_setAmplitude
-        self.setAmplitude_dll.errcheck = errcheck
-        self.setFrequency_dll = anc.ANC_setFrequency
-        self.setFrequency_dll.errcheck = errcheck
-        self.setDcVoltage_dll = anc.ANC_setDcVoltage
-        self.setDcVoltage_dll.errcheck = errcheck
-        self.getAmplitude_dll = anc.ANC_getAmplitude
-        self.getAmplitude_dll.errcheck = errcheck
-        self.getFrequency_dll = anc.ANC_getFrequency
-        self.getFrequency_dll.errcheck = errcheck
-        self.startSingleStep_dll = anc.ANC_startSingleStep
-        self.startSingleStep_dll.errcheck = errcheck
-        self.startContinousMove_dll = anc.ANC_startContinousMove
-        self.startContinousMove_dll.errcheck = errcheck
-        self.startAutoMove_dll = anc.ANC_startAutoMove
-        self.startAutoMove_dll.errcheck = errcheck
-        self.setTargetPosition_dll = anc.ANC_setTargetPosition
-        self.setTargetPosition_dll.errcheck = errcheck
-        self.setTargetRange_dll = anc.ANC_setTargetRange
-        self.setTargetRange_dll.errcheck = errcheck
-        self.getPosition_dll = anc.ANC_getPosition
-        self.getPosition_dll.errcheck = errcheck
-        self.getFirmwareVersion_dll = anc.ANC_getFirmwareVersion
-        self.getFirmwareVersion_dll.errcheck = errcheck
-        self.configureExtTrigger_dll = anc.ANC_configureExtTrigger
-        self.configureExtTrigger_dll.errcheck = errcheck
-        self.configureAQuadBIn_dll = anc.ANC_configureAQuadBIn
-        self.configureAQuadBIn_dll.errcheck = errcheck
-        self.configureAQuadBOut_dll = anc.ANC_configureAQuadBOut
-        self.configureAQuadBOut_dll.errcheck = errcheck
-        self.configureRngTriggerPol_dll = anc.ANC_configureRngTriggerPol
-        self.configureRngTriggerPol_dll.errcheck = errcheck
-        self.configureRngTrigger_dll = anc.ANC_configureRngTrigger
-        self.configureRngTrigger_dll.errcheck = errcheck
-        self.configureRngTriggerEps_dll = anc.ANC_configureRngTriggerEps
-        self.configureRngTriggerEps_dll.errcheck = errcheck
-        self.configureNslTrigger_dll = anc.ANC_configureNslTrigger
-        self.configureNslTrigger_dll.errcheck = errcheck
-        self.configureNslTriggerAxis_dll = anc.ANC_configureNslTriggerAxis
-        self.configureNslTriggerAxis_dll.errcheck = errcheck
-        self.selectActuator_dll = anc.ANC_selectActuator
-        self.selectActuator_dll.errcheck = errcheck
-        self.getActuatorName_dll = anc.ANC_getActuatorName
-        self.getActuatorName_dll.errcheck = errcheck
-        self.getActuatorType_dll = anc.ANC_getActuatorType
-        self.getActuatorType_dll.errcheck = errcheck
-        self.measureCapacitance_dll = anc.ANC_measureCapacitance
-        self.measureCapacitance_dll.errcheck = errcheck
-        self.saveParams_dll = anc.ANC_saveParams
-        self.saveParams_dll.errcheck = errcheck
+        self._getDeviceInfo_dll = anc.ANC_getDeviceInfo
+        self._getDeviceInfo_dll.errcheck = errcheck
+        self._connect_dll = anc.ANC_connect
+        self._connect_dll.errcheck = errcheck
+        self._disconnect_dll = anc.ANC_disconnect
+        self._disconnect_dll.errcheck = errcheck
+        self._getDeviceConfig_dll = anc.ANC_getDeviceConfig
+        self._getDeviceConfig_dll.errcheck = errcheck
+        self._getAxisStatus_dll = anc.ANC_getAxisStatus
+        self._getAxisStatus_dll.errcheck = errcheck
+        self._setAxisOutput_dll = anc.ANC_setAxisOutput
+        self._setAxisOutput_dll.errcheck = errcheck
+        self._setAmplitude_dll = anc.ANC_setAmplitude
+        self._setAmplitude_dll.errcheck = errcheck
+        self._setFrequency_dll = anc.ANC_setFrequency
+        self._setFrequency_dll.errcheck = errcheck
+        self._setDcVoltage_dll = anc.ANC_setDcVoltage
+        self._setDcVoltage_dll.errcheck = errcheck
+        self._setTargetGround_dll = anc.ANC_setTargetGround
+        self._setTargetGround_dll.errcheck = errcheck
+        self._getDcVoltage_dll = anc.ANC_getDcVoltage
+        self._getDcVoltage_dll.errcheck = errcheck
+        self._getAmplitude_dll = anc.ANC_getAmplitude
+        self._getAmplitude_dll.errcheck = errcheck
+        self._getFrequency_dll = anc.ANC_getFrequency
+        self._getFrequency_dll.errcheck = errcheck
+        self._getLutName_dll = anc.ANC_getLutName
+        self._getLutName_dll.errcheck = errcheck
+        self._loadLutFile_dll = anc.ANC_loadLutFile
+        self._loadLutFile_dll.errcheck = errcheck
+        self._startSingleStep_dll = anc.ANC_startSingleStep
+        self._startSingleStep_dll.errcheck = errcheck
+        self._startContinousMove_dll = anc.ANC_startContinousMove
+        self._startContinousMove_dll.errcheck = errcheck
+        self._startAutoMove_dll = anc.ANC_startAutoMove
+        self._startAutoMove_dll.errcheck = errcheck
+        self._setTargetPosition_dll = anc.ANC_setTargetPosition
+        self._setTargetPosition_dll.errcheck = errcheck
+        self._setTargetRange_dll = anc.ANC_setTargetRange
+        self._setTargetRange_dll.errcheck = errcheck
+        self._getPosition_dll = anc.ANC_getPosition
+        self._getPosition_dll.errcheck = errcheck
+        self._getFirmwareVersion_dll = anc.ANC_getFirmwareVersion
+        self._getFirmwareVersion_dll.errcheck = errcheck
+        self._configureExtTrigger_dll = anc.ANC_configureExtTrigger
+        self._configureExtTrigger_dll.errcheck = errcheck
+        self._configureAQuadBIn_dll = anc.ANC_configureAQuadBIn
+        self._configureAQuadBIn_dll.errcheck = errcheck
+        self._configureAQuadBOut_dll = anc.ANC_configureAQuadBOut
+        self._configureAQuadBOut_dll.errcheck = errcheck
+        self._configureRngTriggerPol_dll = anc.ANC_configureRngTriggerPol
+        self._configureRngTriggerPol_dll.errcheck = errcheck
+        self._configureRngTrigger_dll = anc.ANC_configureRngTrigger
+        self._configureRngTrigger_dll.errcheck = errcheck
+        self._configureRngTriggerEps_dll = anc.ANC_configureRngTriggerEps
+        self._configureRngTriggerEps_dll.errcheck = errcheck
+        self._configureNslTrigger_dll = anc.ANC_configureNslTrigger
+        self._configureNslTrigger_dll.errcheck = errcheck
+        self._configureNslTriggerAxis_dll = anc.ANC_configureNslTriggerAxis
+        self._configureNslTriggerAxis_dll.errcheck = errcheck
+        self._selectActuator_dll = anc.ANC_selectActuator
+        self._selectActuator_dll.errcheck = errcheck
+        self._getActuatorName_dll = anc.ANC_getActuatorName
+        self._getActuatorName_dll.errcheck = errcheck
+        self._getActuatorType_dll = anc.ANC_getActuatorType
+        self._getActuatorType_dll.errcheck = errcheck
+        self._measureCapacitance_dll = anc.ANC_measureCapacitance
+        self._measureCapacitance_dll.errcheck = errcheck
+        self._saveParams_dll = anc.ANC_saveParams
+        self._saveParams_dll.errcheck = errcheck
+        # Method count: 35 without ANC_discover and ANC_registerExternalIp
 
-        discover_ACN350()
+        discover_ANC350()
 
         self.device = self.connect()
 
@@ -246,10 +294,10 @@ class Positioner_ACN350:
         resolution : float
             A-Quad-B step width in m. Internal resolution is 1 nm.
         '''
-        self.configureAQuadBIn_dll(self.device,
-                                   ctypes.c_uint(axisNo),
-                                   ctypes.c_int(enable),
-                                   ctypes.c_double(resolution))
+        self._configureAQuadBIn_dll(self.device,
+                                    ctypes.c_uint(axisNo),
+                                    ctypes.c_int(enable),
+                                    ctypes.c_double(resolution))
 
 
     def configureAQuadBOut(self, axisNo, enable, resolution, clock):
@@ -268,11 +316,11 @@ class Positioner_ACN350:
             Clock of the A-Quad-B output [s]. Allowed range is 40 ns ... 1.3 ms.
             Internal resolution is 20 ns.
         '''
-        self.configureAQuadBOut_dll(self.device,
-                                    ctypes.c_uint(axisNo),
-                                    ctypes.c_int(enable),
-                                    ctypes.c_double(resolution),
-                                    ctypes.c_double(clock))
+        self._configureAQuadBOut_dll(self.device,
+                                     ctypes.c_uint(axisNo),
+                                     ctypes.c_int(enable),
+                                     ctypes.c_double(resolution),
+                                     ctypes.c_double(clock))
 
     def configureExtTrigger(self, axisNo, mode):
         '''
@@ -285,9 +333,9 @@ class Positioner_ACN350:
         mode : int
             Disable (0), Quadratur (1), Trigger(2) for external triggering
         '''
-        self.configureExtTrigger_dll(self.device,
-                                     ctypes.c_uint(axisNo),
-                                     ctypes.c_uint(mode))
+        self._configureExtTrigger_dll(self.device,
+                                      ctypes.c_uint(axisNo),
+                                      ctypes.c_uint(mode))
 
     def configureNslTrigger(self, enable):
         '''
@@ -298,8 +346,8 @@ class Positioner_ACN350:
         enable : int
             disable(0), enable(1)
         '''
-        self.configureNslTrigger_dll(self.device,
-                                     ctypes.c_int(enable))
+        self._configureNslTrigger_dll(self.device,
+                                      ctypes.c_int(enable))
 
     def configureNslTriggerAxis(self, axisNo):
         '''
@@ -310,8 +358,8 @@ class Positioner_ACN350:
         axisNo : int
             Axis number (0 ... 2)
         '''
-        self.configureNslTriggerAxis_dll(self.device,
-                                         ctypes.c_uint(axisNo))
+        self._configureNslTriggerAxis_dll(self.device,
+                                          ctypes.c_uint(axisNo))
 
     def configureRngTrigger(self, axisNo, lower, upper):
         '''
@@ -326,10 +374,10 @@ class Positioner_ACN350:
         upper : int
             Upper position for range trigger (nm)
         '''
-        self.configureRngTrigger_dll(self.device,
-                                     ctypes.c_uint(axisNo),
-                                     ctypes.c_uint(lower),
-                                     ctypes.c_uint(upper))
+        self._configureRngTrigger_dll(self.device,
+                                      ctypes.c_uint(axisNo),
+                                      ctypes.c_uint(lower),
+                                      ctypes.c_uint(upper))
 
     def configureRngTriggerEps(self, axisNo, epsilon):
         '''
@@ -342,9 +390,9 @@ class Positioner_ACN350:
         epsilon : int
             Hysteresis in nm / mdeg
         '''
-        self.configureRngTriggerEps_dll(self.device,
-                                        ctypes.c_uint(axisNo),
-                                        ctypes.c_uint(epsilon))
+        self._configureRngTriggerEps_dll(self.device,
+                                         ctypes.c_uint(axisNo),
+                                         ctypes.c_uint(epsilon))
 
     def configureRngTriggerPol(self, axisNo, polarity):
         '''
@@ -358,9 +406,9 @@ class Positioner_ACN350:
             Polarity of trigger signal when position is between lower and upper
             Low (0) and High (1)
         '''
-        self.configureRngTriggerPol_dll(self.device,
-                                        ctypes.c_uint(axisNo),
-                                        ctypes.c_uint(polarity))
+        self._configureRngTriggerPol_dll(self.device,
+                                         ctypes.c_uint(axisNo),
+                                         ctypes.c_uint(polarity))
 
     def connect(self, devNo=0):
         '''
@@ -379,8 +427,8 @@ class Positioner_ACN350:
             Handle to the opened device, NULL pointer on error.
         '''
         device = ctypes.c_void_p()
-        self.connect_dll(devNo,
-                         ctypes.byref(device))
+        self._connect_dll(devNo,
+                          ctypes.byref(device))
         print('ANC350 found at ', device.value)
         return device
 
@@ -389,7 +437,7 @@ class Positioner_ACN350:
         Closes the connection to the device. The device handle becomes invalid.
         '''
         print('Disconnectting ANC350 at ', self.device.value)
-        self.disconnect_dll(self.device)
+        self._disconnect_dll(self.device)
 
     def getActuatorName(self, axisNo):
         '''
@@ -406,9 +454,9 @@ class Positioner_ACN350:
             Name of the actuator
         '''
         name = ctypes.create_string_buffer(32)
-        self.getActuatorName_dll(self.device,
-                                 ctypes.c_uint(axisNo),
-                                 ctypes.byref(name))
+        self._getActuatorName_dll(self.device,
+                                  ctypes.c_uint(axisNo),
+                                  ctypes.byref(name))
         return name.value.decode('utf-8')
 
     def getActuatorType(self, axisNo):
@@ -426,9 +474,9 @@ class Positioner_ACN350:
             Type of the actuator {0: linear, 1: goniometer, 2: rotator}
         '''
         type_ = ctypes.c_int()
-        self.getActuatorType_dll(self.device,
-                                 ctypes.c_uint(axisNo),
-                                 ctypes.byref(type_))
+        self._getActuatorType_dll(self.device,
+                                  ctypes.c_uint(axisNo),
+                                  ctypes.byref(type_))
         return type_.value
 
     def getAmplitude(self, axisNo):
@@ -445,9 +493,9 @@ class Positioner_ACN350:
             Amplitude in V
         '''
         amplitude = ctypes.c_double()
-        self.getAmplitude_dll(self.device,
-                              ctypes.c_uint(axisNo),
-                              ctypes.byref(amplitude))
+        self._getAmplitude_dll(self.device,
+                               ctypes.c_uint(axisNo),
+                               ctypes.byref(amplitude))
         return amplitude.value
 
     def getAxisStatus(self, axisNo):
@@ -484,15 +532,15 @@ class Positioner_ACN350:
         eotBwd = ctypes.c_int()
         error = ctypes.c_int()
 
-        self.getAxisStatus_dll(self.device,
-                               ctypes.c_uint(axisNo),
-                               ctypes.byref(connected),
-                               ctypes.byref(enabled),
-                               ctypes.byref(moving),
-                               ctypes.byref(target),
-                               ctypes.byref(eotFwd),
-                               ctypes.byref(eotBwd),
-                               ctypes.byref(error))
+        self._getAxisStatus_dll(self.device,
+                                ctypes.c_uint(axisNo),
+                                ctypes.byref(connected),
+                                ctypes.byref(enabled),
+                                ctypes.byref(moving),
+                                ctypes.byref(target),
+                                ctypes.byref(eotFwd),
+                                ctypes.byref(eotBwd),
+                                ctypes.byref(error))
 
         print('Status of axis', axisNo,
               '\n'
@@ -530,8 +578,8 @@ class Positioner_ACN350:
         '''
 
         features = ctypes.c_uint()
-        self.getDeviceConfig_dll(self.device,
-                                 features) # @todo Check if byref is missing.
+        self._getDeviceConfig_dll(self.device,
+                                  features) # @todo Check if byref is missing.
 
         featureSync = 0x01 & features.value
         featureLockin = (0x02 & features.value) / 2
@@ -584,12 +632,12 @@ class Positioner_ACN350:
         address = ctypes.create_string_buffer(32)
         connected = ctypes.c_int()
 
-        self.getDeviceInfo_dll(ctypes.c_uint(devNo),
-                               ctypes.byref(devType),
-                               ctypes.byref(id_),
-                               ctypes.byref(serialNo),
-                               ctypes.byref(address),
-                               ctypes.byref(connected))
+        self._getDeviceInfo_dll(ctypes.c_uint(devNo),
+                                ctypes.byref(devType),
+                                ctypes.byref(id_),
+                                ctypes.byref(serialNo),
+                                ctypes.byref(address),
+                                ctypes.byref(connected))
 
         print('Device info of #', devNo,
               '\n'
@@ -619,8 +667,8 @@ class Positioner_ACN350:
             Version number
         '''
         version = ctypes.c_int()
-        self.getFirmwareVersion_dll(self.device,
-                                    ctypes.byref(version))
+        self._getFirmwareVersion_dll(self.device,
+                                     ctypes.byref(version))
         return version.value
 
     def getFrequency(self, axisNo):
@@ -638,10 +686,47 @@ class Positioner_ACN350:
             Frequency in Hz
         '''
         frequency = ctypes.c_double()
-        self.getFrequency_dll(self.device,
-                              ctypes.c_uint(axisNo),
-                              ctypes.byref(frequency))
+        self._getFrequency_dll(self.device,
+                               ctypes.c_uint(axisNo),
+                               ctypes.byref(frequency))
         return frequency.value
+
+    def getLutName(self, axisNo):
+        '''
+        Get the name of the currently selected sensor lookup table.
+        The function is only available in RES devices.
+
+        Parameters
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+
+        Returns
+        -------
+        name : str
+            Name of the LUT
+        '''
+        name = ctypes.create_string_buffer(32)
+        self._getLutName_dll(self.device,
+                             ctypes.c_uint(axisNo),
+                             ctypes.byref(name))
+        return name.value.decode('utf-8')
+
+    def loadLutFile(self, axisNo, fileName):
+        '''
+        Loads a sensor lookup table from a file into the device.
+        The function is only available for ANC350Res devices.
+
+        Parameters
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+        fileName : str
+            Name of the LUT file to import, optionally with path
+        '''
+        self._loadLutFile_dll(self.device,
+                              ctypes.c_uint(axisNo),
+                              ctypes.c_char_p(fileName)) # @todo Not checked
 
     def getPosition(self, axisNo):
         '''
@@ -659,9 +744,9 @@ class Positioner_ACN350:
             Current position m or deg
         '''
         position = ctypes.c_double()
-        self.getPosition_dll(self.device,
-                             ctypes.c_uint(axisNo),
-                             ctypes.byref(position))
+        self._getPosition_dll(self.device,
+                              ctypes.c_uint(axisNo),
+                              ctypes.byref(position))
         return position.value
 
     def measureCapacitance(self, axisNo):
@@ -682,9 +767,9 @@ class Positioner_ACN350:
             Output: Capacitance in F
         '''
         cap = ctypes.c_double()
-        self.measureCapacitance_dll(self.device,
-                                    ctypes.c_uint(axisNo),
-                                    ctypes.byref(cap))
+        self._measureCapacitance_dll(self.device,
+                                     ctypes.c_uint(axisNo),
+                                     ctypes.byref(cap))
         return cap.value
 
     def saveParams(self):
@@ -694,7 +779,7 @@ class Positioner_ACN350:
         are affected: Amplitude, frequency, actuator selections as well as
         trigger and quadrature settings.
         '''
-        self.saveParams_dll(self.device)
+        self._saveParams_dll(self.device)
 
     def selectActuator(self, axisNo, actuator):
         '''
@@ -719,9 +804,9 @@ class Positioner_ACN350:
             10: ANPx311
             11: ANPx321
         '''
-        self.selectActuator_dll(self.device,
-                                ctypes.c_uint(axisNo),
-                                ctypes.c_uint(actuator))
+        self._selectActuator_dll(self.device,
+                                 ctypes.c_uint(axisNo),
+                                 ctypes.c_uint(actuator))
 
     def setAmplitude(self, axisNo, amplitude):
         '''
@@ -734,9 +819,9 @@ class Positioner_ACN350:
         amplitude : float
             Amplitude in V, internal resolution is 1 mV
         '''
-        self.setAmplitude_dll(self.device,
-                              ctypes.c_uint(axisNo),
-                              ctypes.c_double(amplitude))
+        self._setAmplitude_dll(self.device,
+                               ctypes.c_uint(axisNo),
+                               ctypes.c_double(amplitude))
 
     def setAxisOutput(self, axisNo, enable, autoDisable):
         '''
@@ -753,10 +838,10 @@ class Positioner_ACN350:
             of travel is detected. Enable voltage deactivation (1), disable
             voltage deactivation (0).
         '''
-        self.setAxisOutput_dll(self.device,
-                               ctypes.c_uint(axisNo),
-                               ctypes.c_int(enable),
-                               ctypes.c_int(autoDisable))
+        self._setAxisOutput_dll(self.device,
+                                ctypes.c_uint(axisNo),
+                                ctypes.c_int(enable),
+                                ctypes.c_int(autoDisable))
 
     def setDcVoltage(self, axisNo, voltage):
         '''
@@ -770,9 +855,9 @@ class Positioner_ACN350:
         voltage : float
             DC output voltage V, internal resolution is 1 mV
         '''
-        self.setDcVoltage_dll(self.device,
-                              ctypes.c_uint(axisNo),
-                              ctypes.c_double(voltage))
+        self._setDcVoltage_dll(self.device,
+                               ctypes.c_uint(axisNo),
+                               ctypes.c_double(voltage))
 
     def setFrequency(self, axisNo, frequency):
         '''
@@ -785,9 +870,49 @@ class Positioner_ACN350:
         frequency : float
             Frequency in Hz, internal resolution is 1 Hz
         '''
-        self.setFrequency_dll(self.device,
-                              ctypes.c_uint(axisNo),
-                              ctypes.c_double(frequency))
+        self._setFrequency_dll(self.device,
+                               ctypes.c_uint(axisNo),
+                               ctypes.c_double(frequency))
+
+    def setTargetGround(self, axisNo, targetGnd):
+        '''
+        Sets or clears the Target GND Flag. It determines the action performed
+        in automatic positioning mode when the target position is reached.
+        If set, the DC output is set to 0 V and the position control feedback
+        loop is stopped.
+
+        Paramters
+        ---------
+        axisNo : int
+            Axis number (0 ... 2)
+        targetGnd : int
+            Clears (0) or sets (1) target GND flag
+        '''
+        self._setTargetGround_dll(self.device,
+                                  ctypes.c_uint(axisNo),
+                                  ctypes.c_int(targetGnd))
+
+    def getDcVoltage(self, axisNo):
+        '''
+        Reads back the current DC level. It may be the level that has been set
+        by setDcVoltage or the value currently adjusted by the feedback
+        controller.
+
+        Parameters
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+
+        Returns
+        -------
+        dcvolt : float
+            DC voltage in V
+        '''
+        dcvolt = ctypes.c_double()
+        self._getDcVoltage_dll(self.device,
+                               ctypes.c_uint(axisNo),
+                               ctypes.byref(dcvolt))
+        return dcvolt.value
 
     def setTargetPosition(self, axisNo, target):
         '''
@@ -802,9 +927,9 @@ class Positioner_ACN350:
         target : float
             Target position m or deg. Internal resulution is 1 nm or 1 µdeg.
         '''
-        self.setTargetPosition_dll(self.device,
-                                   ctypes.c_uint(axisNo),
-                                   ctypes.c_double(target))
+        self._setTargetPosition_dll(self.device,
+                                    ctypes.c_uint(axisNo),
+                                    ctypes.c_double(target))
 
     def setTargetRange(self, axisNo, targetRg):
         '''
@@ -818,9 +943,9 @@ class Positioner_ACN350:
         targetRg : float
             Target range m or deg. Internal resulution is 1 nm or 1 µdeg.
         '''
-        self.setTargetRange_dll(self.device,
-                                ctypes.c_uint(axisNo),
-                                ctypes.c_double(targetRg))
+        self._setTargetRange_dll(self.device,
+                                 ctypes.c_uint(axisNo),
+                                 ctypes.c_double(targetRg))
 
     def startAutoMove(self, axisNo, enable, relative):
         '''
@@ -835,10 +960,10 @@ class Positioner_ACN350:
             If the target position is to be interpreted absolute (0) or
             relative to the current position (1)
         '''
-        self.startAutoMove_dll(self.device,
-                               ctypes.c_uint(axisNo),
-                               ctypes.c_int(enable),
-                               ctypes.c_int(relative))
+        self._startAutoMove_dll(self.device,
+                                ctypes.c_uint(axisNo),
+                                ctypes.c_int(enable),
+                                ctypes.c_int(relative))
 
     def startContinuousMove(self, axisNo, start, backward):
         '''
@@ -854,10 +979,10 @@ class Positioner_ACN350:
         backward : int
             If the move direction is forward (0) or backward (1)
         '''
-        self.startContinousMove_dll(self.device,
-                                    ctypes.c_uint(axisNo),
-                                    ctypes.c_int(start),
-                                    ctypes.c_int(backward))
+        self._startContinousMove_dll(self.device,
+                                     ctypes.c_uint(axisNo),
+                                     ctypes.c_int(start),
+                                     ctypes.c_int(backward))
 
     def startSingleStep(self, axisNo, backward):
         '''
@@ -870,11 +995,12 @@ class Positioner_ACN350:
         backward : int
             If the step direction is forward (0) or backward (1)
         '''
-        self.startSingleStep_dll(self.device,
-                                 ctypes.c_uint(axisNo),
-                                 ctypes.c_int(backward))
+        self._startSingleStep_dll(self.device,
+                                  ctypes.c_uint(axisNo),
+                                  ctypes.c_int(backward))
 
 if __name__ == '__main__':
-    anc350 = Positioner_ACN350()
-    anc350.getAxisStatus(2)
-    anc350.disconnect()
+    posi = Positioner_ANC350()
+    posi.getAxisStatus(2)
+    posi.disconnect()
+
