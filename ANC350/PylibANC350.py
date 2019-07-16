@@ -7,6 +7,7 @@ Created on Fri Jul  5 16:11:11 2019
 
 import ctypes
 import os
+import warnings
 
 def errcheck(code, func, args):
     '''
@@ -250,6 +251,25 @@ class Positioner_ANC350:
         self._saveParams_dll = anc.ANC_saveParams
         self._saveParams_dll.errcheck = errcheck
         # Method count: 35 without ANC_discover and ANC_registerExternalIp
+
+        # Not implemented yet due to missing header:
+        self._configureDutyCycle_dll = anc.ANC_configureDutyCycle
+        self._configureDutyCycle_dll.errcheck = errcheck
+        self._enableRefAutoReset_dll = anc.ANC_enableRefAutoReset
+        self._enableRefAutoReset_dll.errcheck = errcheck
+        self._enableRefAutoUpdate_dll = anc.ANC_enableRefAutoUpdate
+        self._enableRefAutoUpdate_dll.errcheck = errcheck
+        self._enableSensor_dll = anc.ANC_enableSensor
+        self._enableSensor_dll.errcheck = errcheck
+        self._enableTrace_dll = anc.ANC_enableTrace
+        self._enableTrace_dll.errcheck = errcheck
+        self._getRefPosition_dll = anc.ANC_getRefPosition
+        self._getRefPosition_dll.errcheck = errcheck
+        self._moveReference_dll = anc.ANC_moveReference
+        self._moveReference_dll.errcheck = errcheck
+        self._resetPosition_dll = anc.ANC_resetPosition
+        self._resetPosition_dll.errcheck = errcheck
+        # Not implemented stop.
 
         discover_ANC350()
 
