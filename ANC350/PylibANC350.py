@@ -180,79 +180,85 @@ class Positioner_ANC350:
 
         # Aliases for the functions from the dll. Also for handling return
         # values: '.errcheck' is an attribute from ctypes.
-        self._getDeviceInfo_dll = anc.ANC_getDeviceInfo
-        self._getDeviceInfo_dll.errcheck = errcheck
-        self._connect_dll = anc.ANC_connect
-        self._connect_dll.errcheck = errcheck
-        self._disconnect_dll = anc.ANC_disconnect
-        self._disconnect_dll.errcheck = errcheck
-        self._getDeviceConfig_dll = anc.ANC_getDeviceConfig
-        self._getDeviceConfig_dll.errcheck = errcheck
-        self._getAxisStatus_dll = anc.ANC_getAxisStatus
-        self._getAxisStatus_dll.errcheck = errcheck
-        self._setAxisOutput_dll = anc.ANC_setAxisOutput
-        self._setAxisOutput_dll.errcheck = errcheck
-        self._setAmplitude_dll = anc.ANC_setAmplitude
-        self._setAmplitude_dll.errcheck = errcheck
-        self._setFrequency_dll = anc.ANC_setFrequency
-        self._setFrequency_dll.errcheck = errcheck
-        self._setDcVoltage_dll = anc.ANC_setDcVoltage
-        self._setDcVoltage_dll.errcheck = errcheck
-        self._setTargetGround_dll = anc.ANC_setTargetGround
-        self._setTargetGround_dll.errcheck = errcheck
-        self._getDcVoltage_dll = anc.ANC_getDcVoltage
-        self._getDcVoltage_dll.errcheck = errcheck
-        self._getAmplitude_dll = anc.ANC_getAmplitude
-        self._getAmplitude_dll.errcheck = errcheck
-        self._getFrequency_dll = anc.ANC_getFrequency
-        self._getFrequency_dll.errcheck = errcheck
-        self._getLutName_dll = anc.ANC_getLutName
-        self._getLutName_dll.errcheck = errcheck
-        self._loadLutFile_dll = anc.ANC_loadLutFile
-        self._loadLutFile_dll.errcheck = errcheck
-        self._startSingleStep_dll = anc.ANC_startSingleStep
-        self._startSingleStep_dll.errcheck = errcheck
-        self._startContinousMove_dll = anc.ANC_startContinousMove
-        self._startContinousMove_dll.errcheck = errcheck
-        self._startAutoMove_dll = anc.ANC_startAutoMove
-        self._startAutoMove_dll.errcheck = errcheck
-        self._setTargetPosition_dll = anc.ANC_setTargetPosition
-        self._setTargetPosition_dll.errcheck = errcheck
-        self._setTargetRange_dll = anc.ANC_setTargetRange
-        self._setTargetRange_dll.errcheck = errcheck
-        self._getPosition_dll = anc.ANC_getPosition
-        self._getPosition_dll.errcheck = errcheck
-        self._getFirmwareVersion_dll = anc.ANC_getFirmwareVersion
-        self._getFirmwareVersion_dll.errcheck = errcheck
-        self._configureExtTrigger_dll = anc.ANC_configureExtTrigger
-        self._configureExtTrigger_dll.errcheck = errcheck
         self._configureAQuadBIn_dll = anc.ANC_configureAQuadBIn
         self._configureAQuadBIn_dll.errcheck = errcheck
         self._configureAQuadBOut_dll = anc.ANC_configureAQuadBOut
         self._configureAQuadBOut_dll.errcheck = errcheck
-        self._configureRngTriggerPol_dll = anc.ANC_configureRngTriggerPol
-        self._configureRngTriggerPol_dll.errcheck = errcheck
-        self._configureRngTrigger_dll = anc.ANC_configureRngTrigger
-        self._configureRngTrigger_dll.errcheck = errcheck
-        self._configureRngTriggerEps_dll = anc.ANC_configureRngTriggerEps
-        self._configureRngTriggerEps_dll.errcheck = errcheck
+        self._configureExtTrigger_dll = anc.ANC_configureExtTrigger
+        self._configureExtTrigger_dll.errcheck = errcheck
         self._configureNslTrigger_dll = anc.ANC_configureNslTrigger
         self._configureNslTrigger_dll.errcheck = errcheck
         self._configureNslTriggerAxis_dll = anc.ANC_configureNslTriggerAxis
         self._configureNslTriggerAxis_dll.errcheck = errcheck
-        self._selectActuator_dll = anc.ANC_selectActuator
-        self._selectActuator_dll.errcheck = errcheck
+        self._configureRngTrigger_dll = anc.ANC_configureRngTrigger
+        self._configureRngTrigger_dll.errcheck = errcheck
+        self._configureRngTriggerEps_dll = anc.ANC_configureRngTriggerEps
+        self._configureRngTriggerEps_dll.errcheck = errcheck
+        self._configureRngTriggerPol_dll = anc.ANC_configureRngTriggerPol
+        self._configureRngTriggerPol_dll.errcheck = errcheck
+        self._connect_dll = anc.ANC_connect
+        self._connect_dll.errcheck = errcheck
+        self._disconnect_dll = anc.ANC_disconnect
+        self._disconnect_dll.errcheck = errcheck
         self._getActuatorName_dll = anc.ANC_getActuatorName
         self._getActuatorName_dll.errcheck = errcheck
         self._getActuatorType_dll = anc.ANC_getActuatorType
         self._getActuatorType_dll.errcheck = errcheck
+        self._getAmplitude_dll = anc.ANC_getAmplitude
+        self._getAmplitude_dll.errcheck = errcheck
+        self._getAxisStatus_dll = anc.ANC_getAxisStatus
+        self._getAxisStatus_dll.errcheck = errcheck
+        try:
+            self._getDcVoltage_dll = anc.ANC_getDcVoltage
+            self._getDcVoltage_dll.errcheck = errcheck
+        except:
+            warnings.warn('ANC_getDcVoltage not available')
+        self._getDeviceConfig_dll = anc.ANC_getDeviceConfig
+        self._getDeviceConfig_dll.errcheck = errcheck
+        self._getDeviceInfo_dll = anc.ANC_getDeviceInfo
+        self._getDeviceInfo_dll.errcheck = errcheck
+        self._getFirmwareVersion_dll = anc.ANC_getFirmwareVersion
+        self._getFirmwareVersion_dll.errcheck = errcheck
+        self._getFrequency_dll = anc.ANC_getFrequency
+        self._getFrequency_dll.errcheck = errcheck
+        self._getPosition_dll = anc.ANC_getPosition
+        self._getPosition_dll.errcheck = errcheck
+        self._loadLutFile_dll = anc.ANC_loadLutFile
+        self._loadLutFile_dll.errcheck = errcheck
         self._measureCapacitance_dll = anc.ANC_measureCapacitance
         self._measureCapacitance_dll.errcheck = errcheck
         self._saveParams_dll = anc.ANC_saveParams
         self._saveParams_dll.errcheck = errcheck
+        self._selectActuator_dll = anc.ANC_selectActuator
+        self._selectActuator_dll.errcheck = errcheck
+        self._setAmplitude_dll = anc.ANC_setAmplitude
+        self._setAmplitude_dll.errcheck = errcheck
+        self._setAxisOutput_dll = anc.ANC_setAxisOutput
+        self._setAxisOutput_dll.errcheck = errcheck
+        self._setDcVoltage_dll = anc.ANC_setDcVoltage
+        self._setDcVoltage_dll.errcheck = errcheck
+        self._setFrequency_dll = anc.ANC_setFrequency
+        self._setFrequency_dll.errcheck = errcheck
+        try:
+            self._getLutName_dll = anc.ANC_getLutName
+            self._getLutName_dll.errcheck = errcheck
+        except:
+            warnings.warn('ANC_getLutName not available')
+        self._setTargetGround_dll = anc.ANC_setTargetGround
+        self._setTargetGround_dll.errcheck = errcheck
+        self._setTargetPosition_dll = anc.ANC_setTargetPosition
+        self._setTargetPosition_dll.errcheck = errcheck
+        self._setTargetRange_dll = anc.ANC_setTargetRange
+        self._setTargetRange_dll.errcheck = errcheck
+        self._startAutoMove_dll = anc.ANC_startAutoMove
+        self._startAutoMove_dll.errcheck = errcheck
+        self._startContinousMove_dll = anc.ANC_startContinousMove
+        self._startContinousMove_dll.errcheck = errcheck
+        self._startSingleStep_dll = anc.ANC_startSingleStep
+        self._startSingleStep_dll.errcheck = errcheck
         # Method count: 35 without ANC_discover and ANC_registerExternalIp
 
-        # Not implemented yet due to missing header:
+        # Not implemented yet (found in non-res products):
         self._configureDutyCycle_dll = anc.ANC_configureDutyCycle
         self._configureDutyCycle_dll.errcheck = errcheck
         self._enableRefAutoReset_dll = anc.ANC_enableRefAutoReset
@@ -303,7 +309,6 @@ class Positioner_ANC350:
                                     ctypes.c_uint(axisNo),
                                     ctypes.c_int(enable),
                                     ctypes.c_double(resolution))
-
 
     def configureAQuadBOut(self, axisNo, enable, resolution, clock):
         '''
@@ -566,6 +571,28 @@ class Positioner_ANC350:
         return connected.value, enabled.value, moving.value, \
                target.value, eotFwd.value, eotBwd.value, error.value
 
+    def getDcVoltage(self, axisNo):
+        '''
+        Reads back the current DC level. It may be the level that has been set
+        by setDcVoltage or the value currently adjusted by the feedback
+        controller.
+
+        Parameters
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+
+        Returns
+        -------
+        dcvolt : float
+            DC voltage in V
+        '''
+        dcvolt = ctypes.c_double()
+        self._getDcVoltage_dll(self.device,
+                               ctypes.c_uint(axisNo),
+                               ctypes.byref(dcvolt))
+        return dcvolt.value
+
     def getDeviceConfig(self):
         '''
         Reads static device configuration data.
@@ -718,22 +745,6 @@ class Positioner_ANC350:
                              ctypes.byref(name))
         return name.value.decode('utf-8')
 
-    def loadLutFile(self, axisNo, fileName):
-        '''
-        Loads a sensor lookup table from a file into the device.
-        The function is only available for ANC350Res devices.
-
-        Parameters
-        ----------
-        axisNo : int
-            Axis number (0 ... 2)
-        fileName : str
-            Name of the LUT file to import, optionally with path
-        '''
-        self._loadLutFile_dll(self.device,
-                              ctypes.c_uint(axisNo),
-                              ctypes.c_char_p(fileName)) # @todo Not checked
-
     def getPosition(self, axisNo):
         '''
         Retrieves the current actuator position. For linear type actuators the
@@ -754,6 +765,22 @@ class Positioner_ANC350:
                               ctypes.c_uint(axisNo),
                               ctypes.byref(position))
         return position.value
+
+    def loadLutFile(self, axisNo, fileName):
+        '''
+        Loads a sensor lookup table from a file into the device.
+        The function is only available for ANC350Res devices.
+
+        Parameters
+        ----------
+        axisNo : int
+            Axis number (0 ... 2)
+        fileName : str
+            Name of the LUT file to import, optionally with path
+        '''
+        self._loadLutFile_dll(self.device,
+                              ctypes.c_uint(axisNo),
+                              ctypes.c_char_p(fileName)) # @todo Not checked
 
     def measureCapacitance(self, axisNo):
         '''
@@ -898,28 +925,6 @@ class Positioner_ANC350:
         self._setTargetGround_dll(self.device,
                                   ctypes.c_uint(axisNo),
                                   ctypes.c_int(targetGnd))
-
-    def getDcVoltage(self, axisNo):
-        '''
-        Reads back the current DC level. It may be the level that has been set
-        by setDcVoltage or the value currently adjusted by the feedback
-        controller.
-
-        Parameters
-        ----------
-        axisNo : int
-            Axis number (0 ... 2)
-
-        Returns
-        -------
-        dcvolt : float
-            DC voltage in V
-        '''
-        dcvolt = ctypes.c_double()
-        self._getDcVoltage_dll(self.device,
-                               ctypes.c_uint(axisNo),
-                               ctypes.byref(dcvolt))
-        return dcvolt.value
 
     def setTargetPosition(self, axisNo, target):
         '''

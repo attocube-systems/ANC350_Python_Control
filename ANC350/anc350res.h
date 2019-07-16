@@ -36,7 +36,7 @@
  *  readback. When finished, close the connection with \ref ANC_disconnect.
  */
 /*****************************************************************************/
-/* $Id: anc350res.h,v 1.16 2019/02/12 13:56:21 trurl Exp $ */
+/* $Id: anc350res.h,v 1.12 2017/08/04 13:59:18 trurl Exp $ */
 
 #ifndef __ANC350RES_H__
 #define __ANC350RES_H__
@@ -286,7 +286,7 @@ ANC_API Int32 WINCC ANC_setFrequency( ANC_Handle device,
 /** @brief Set DC Output Voltage
  *
  *  Sets the DC level on the voltage output when no sawtooth based
- *  motion and no feedback loop is active.
+ *  motion is active.
  *  @param  device     Handle of the device to access
  *  @param  axisNo     Axis number (0 ... 2)
  *  @param  voltage    DC output voltage [V], internal resolution is 1 mV
@@ -323,22 +323,6 @@ ANC_API Int32 WINCC ANC_getFrequency( ANC_Handle device,
                                       double   * frequency );
 
 
-/** @brief Read back DC Output Voltage
- *
- *  Reads back the current DC level. It may be the level that has been set
- *  by @ref ANC_setDcVoltage or the value currently adjusted by the feedback
- *  controller.
- *  Currently the function is only available for RES devices.
- *  @param  device     Handle of the device to access
- *  @param  axisNo     Axis number (0 ... 2)
- *  @param  voltage    Output: DC output voltage [V]
- *  @return            Error code
- */
-ANC_API Int32 WINCC ANC_getDcVoltage( ANC_Handle device,
-                                      Uit32      axisNo,
-                                      double   * voltage );
-
-
 /** @brief Single Step
  *
  *  Triggers a single step in desired direction.
@@ -354,8 +338,8 @@ ANC_API Int32 WINCC ANC_startSingleStep( ANC_Handle device,
 
 /** @brief Continous Motion
  *
- *  Starts or stops continous motion in forward or backward direction.
- *  Other kinds of motion are stopped.
+ *  Starts or stops continous motion in forward direction.
+ *  Other kinds of motions are stopped.
  *  @param  device     Handle of the device to access
  *  @param  axisNo     Axis number (0 ... 2)
  *  @param  start      Starts (1) or stops (0) the motion
@@ -603,22 +587,6 @@ ANC_API Int32 WINCC ANC_getActuatorName( ANC_Handle device,
 ANC_API Int32 WINCC ANC_getActuatorType( ANC_Handle         device, 
                                          Uit32              axisNo,
                                          ANC_ActuatorType * type );
-
-
-/** @brief Get LUT Name
- *
- *  Get the name of the currently selected sensor lookup table.
- *  The function is only available in RES devices.
- *  @param  device     Handle of the device to access
- *  @param  axisNo     Axis number (0 ... 2)
- *  @param  name       Output: Name of the LUT as NULL-terminated c-string.
- *                     The string buffer should be at least 20 bytes long.
- *  @return            Error code
- */
-ANC_API Int32 WINCC ANC_getLutName( ANC_Handle device,
-                                    Uit32      axisNo,
-                                    Int8     * name );
-
 
 
 /** @brief Measure Motor Capacitance
