@@ -167,7 +167,7 @@ def registerExternalIp(hostname):
     registerExternalIp_dll = anc.ANC_registerExternalIp
     registerExternalIp_dll.errcheck = errcheck
 
-    registerExternalIp_dll(ctypes.c_char_p(hostname)) # @todo check
+    registerExternalIp_dll(ctypes.c_char_p(hostname)) # @todo To check
 
 class Positioner_ANC350:
     '''
@@ -180,6 +180,7 @@ class Positioner_ANC350:
 
         # Aliases for the functions from the dll. Also for handling return
         # values: '.errcheck' is an attribute from ctypes.
+        # Taken from anc350res.h,v 1.12 2017/08/04 13:59:18
         self._configureAQuadBIn_dll = anc.ANC_configureAQuadBIn
         self._configureAQuadBIn_dll.errcheck = errcheck
         self._configureAQuadBOut_dll = anc.ANC_configureAQuadBOut
@@ -552,15 +553,16 @@ class Positioner_ANC350:
                                 ctypes.byref(eotBwd),
                                 ctypes.byref(error))
 
-        print('Status of axis', axisNo,
-              '\n'
+        print('Status of axis {:}\n'
+              '----------------\n'
               'Connected          {:}\n'
               'Enabled            {:}\n'
               'Moving             {:}\n'
               'Target             {:}\n'
               'End of travel (fw) {:}\n'
               'End of travel (bw) {:}\n'
-              'Error state        {:}'.format(connected.value,
+              'Error state        {:}'.format(axisNo,
+                                              connected.value,
                                               enabled.value,
                                               moving.value,
                                               target.value,
@@ -608,15 +610,14 @@ class Positioner_ANC350:
         featureApp : int
             'App': Control by IOS app enabled (1) or disabled (0)
         '''
-
         features = ctypes.c_uint()
         self._getDeviceConfig_dll(self.device,
-                                  features) # @todo Check if byref is missing.
+                                  ctypes.byref(features))
 
         featureSync = 0x01 & features.value
-        featureLockin = (0x02 & features.value) / 2
-        featureDuty = (0x04 & features.value) / 4
-        featureApp = (0x08 & features.value) / 8
+        featureLockin = int((0x02 & features.value) / 2)
+        featureDuty = int((0x04 & features.value) / 4)
+        featureApp = int((0x08 & features.value) / 8)
 
         print('Device configuration\n'
               '--------------------\n'
@@ -672,13 +673,14 @@ class Positioner_ANC350:
                                 ctypes.byref(address),
                                 ctypes.byref(connected))
 
-        print('Device info of #', devNo,
-              '\n'
+        print('Device info of # {:}\n'
+              '------------------\n'
               'Type        {:}\n'
               'Hardware ID {:}\n'
               'Serial No   {:}\n'
               'Address     {:}\n'
-              'Connected   {:}'.format(devType.value,
+              'Connected   {:}'.format(devNo,
+                                       devType.value,
                                        id_.value,
                                        serialNo.value.decode('utf-8'),
                                        address.value.decode('utf-8'),
@@ -831,12 +833,18 @@ class Positioner_ANC350:
             4: ANPz101
             5: ANPz102
             6: ANPz101ext
-            7: ANPz111ext
-            8: ANPx111ext
+            7: ANPz111(ext)
+            8: ANPx111(ext)
             9: ANPx121
             10: ANPx311
             11: ANPx321
-            @todo: test numbering
+            12: ANPx341
+            13: ANGt101
+            14: ANGp101
+            15: ANR(v)101
+            16: ANR(v)5*
+            17: ANR(v)200/240
+            18: ANR(v)220
         '''
         self._selectActuator_dll(self.device,
                                  ctypes.c_uint(axisNo),
@@ -1014,5 +1022,7 @@ class Positioner_ANC350:
 if __name__ == '__main__':
     posi = Positioner_ANC350()
     posi.getAxisStatus(2)
+    posi.getDeviceInfo()
+    posi.getDeviceConfig()
     posi.disconnect()
 
