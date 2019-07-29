@@ -8,6 +8,7 @@ Created on Fri Jul  5 16:11:11 2019
 import ctypes
 import os
 import warnings
+import platform
 
 def errcheck(code, func, args):
     '''
@@ -45,47 +46,59 @@ def errcheck(code, func, args):
     if code == ANC_Ok:
         pass
     elif code == ANC_Error:
-        raise RuntimeError('Error: unspecific error in ' + str(func.__name__) + \
+        raise RuntimeError('Error: unspecific error in ' +
+                           str(func.__name__) +
                            ' with parameters: ' + str(args))
     elif code == ANC_Timeout:
-        raise RuntimeError('Error: timeout error in ' + str(func.__name__) + \
+        raise RuntimeError('Error: timeout error in ' +
+                           str(func.__name__) +
                            ' with parameters: ' + str(args))
     elif code == ANC_NotConnected:
-        raise RuntimeError('Error: not connected error in ' + str(func.__name__) + \
+        raise RuntimeError('Error: not connected error in ' +
+                           str(func.__name__) +
                            ' with parameters: ' + str(args))
     elif code == ANC_DriverError:
-        raise RuntimeError('Error: driver error in ' + str(func.__name__) + \
+        raise RuntimeError('Error: driver error in ' +
+                           str(func.__name__) +
                            ' with parameters: ' + str(args))
     elif code == ANC_DeviceLocked:
-        raise RuntimeError('Error: device locked in ' + str(func.__name__) + \
+        raise RuntimeError('Error: device locked in ' +
+                           str(func.__name__) +
                            ' with parameters: ' + str(args))
     elif code == ANC_Unknown:
-        raise RuntimeError('Error: unknown error in ' + str(func.__name__) + \
+        raise RuntimeError('Error: unknown error in ' +
+                           str(func.__name__) +
                            ' with parameters: ' + str(args))
     elif code == ANC_NoDevice:
-        raise RuntimeError('Error: invalid device number in ' + str(func.__name__) + \
+        raise RuntimeError('Error: invalid device number in ' +
+                           str(func.__name__) +
                            ' with parameters: ' + str(args))
     elif code == ANC_NoAxis:
-        raise RuntimeError('Error: invalid axis number in ' + str(func.__name__) + \
+        raise RuntimeError('Error: invalid axis number in ' +
+                           str(func.__name__) +
                            ' with parameters: ' + str(args))
     elif code == ANC_OutOfRange:
-        raise RuntimeError('Error: parameter out of range in ' + str(func.__name__) + \
+        raise RuntimeError('Error: parameter out of range in ' +
+                           str(func.__name__) +
                            ' with parameters: ' + str(args))
     elif code == ANC_NotAvailable:
-        raise RuntimeError('Error: function not available in ' + str(func.__name__) + \
+        raise RuntimeError('Error: function not available in ' +
+                           str(func.__name__) +
                            ' with parameters: ' + str(args))
     elif code == ANC_FileError:
-        raise RuntimeError('Error: file not available in ' + str(func.__name__) + \
+        raise RuntimeError('Error: file not available in ' +
+                           str(func.__name__) +
                            ' with parameters: ' + str(args))
     else:
-        raise RuntimeError('Error: this should not happen in ' + str(func.__name__) + \
+        raise RuntimeError('Error: this should not happen in ' +
+                           str(func.__name__) +
                            ' with parameters: ' + str(args))
     return code
 
 def load_ANC350dll():
     '''
-    Import dll to communicate with ANC350. Pay attention to have libusb0
-    available too.
+    Import .dll/.so to communicate with ANC350. Pay attention to have libusb0
+    available too for Windows systems.
 
     Returns
     -------
@@ -93,18 +106,39 @@ def load_ANC350dll():
         Instance of the LoadLibrary method
     '''
     root_path = os.path.dirname(os.path.realpath(__file__))
+    lib_name = 'anc350v4'
+    bitness = platform.architecture()[0]
+    os_name = platform.system()
 
-    if os.name == 'nt': # Windows
-        lib_path = os.path.join(root_path, 'win64')
-        lib = os.path.join(lib_path, 'anc350v4.dll')
+    if os_name not in ('Windows', 'Linux'):
+        RuntimeError('Running only on Windows or Linux OS')
+    if bitness not in ('64bit', '32bit'):
+        RuntimeError('Can not determine OS bit-ness')
+
+    if os_name == 'Windows':
+        lib_name_usb = 'libusb0.dll'
+        if bitness == '64bit':
+            lib_path = os.path.join(root_path, 'win64')
+        else:
+            lib_path = os.path.join(root_path, 'win32')
+        libusb = os.path.join(lib_path, lib_name_usb)
+        if not os.path.isfile(libusb):
+            raise FileNotFoundError('Error: can not find '
+                                    + lib_path + lib_name_usb)
+        lib = os.path.join(lib_path, lib_name + '.dll')
         if not os.path.isfile(lib):
-            raise FileNotFoundError('Error: can not find win64\anc350v4.dll')
+            raise FileNotFoundError('Error: can not find '
+                                    + lib_path + lib_name + '.dll')
         anc = ctypes.cdll.LoadLibrary(lib)
-    else: # Assume Linux-like
-        lib_path = os.path.join(root_path, 'linux64')
-        lib = os.path.join(lib_path, 'libanc350v4.so')
+    else:
+        if bitness == '64bit':
+            lib_path = os.path.join(root_path, 'linux64')
+        else:
+            lib_path = os.path.join(root_path, 'linux32')
+        lib = os.path.join(lib_path, lib_name + '.so')
         if not os.path.isfile(lib):
-            raise FileNotFoundError('Error: can not find linux\anc350v4.so')
+            raise FileNotFoundError('Error: can not find '
+                                    + lib_path + lib_name + '.so')
         anc = ctypes.cdll.LoadLibrary(lib)
 
     return anc
@@ -173,12 +207,10 @@ class Positioner_ANC350:
     '''
     Class of a positioner connected to the ANC350.
     '''
-    def __init__(self):
-        print('Enter __init__')
-
+    def __init__(self, devNo=0):
         anc = load_ANC350dll()
 
-        # Aliases for the functions from the dll. Also for handling return
+        # Aliases for the functions from the dll. For handling return
         # values: '.errcheck' is an attribute from ctypes.
         # Taken from anc350res.h,v 1.12 2017/08/04 13:59:18
         self._configureAQuadBIn_dll = anc.ANC_configureAQuadBIn
@@ -259,7 +291,7 @@ class Positioner_ANC350:
         self._startSingleStep_dll.errcheck = errcheck
         # Method count: 35 without ANC_discover and ANC_registerExternalIp
 
-        # Not implemented yet (found in non-res products):
+        # Not implemented -- start (found in non-res products):
         self._configureDutyCycle_dll = anc.ANC_configureDutyCycle
         self._configureDutyCycle_dll.errcheck = errcheck
         self._enableRefAutoReset_dll = anc.ANC_enableRefAutoReset
@@ -276,13 +308,10 @@ class Positioner_ANC350:
         self._moveReference_dll.errcheck = errcheck
         self._resetPosition_dll = anc.ANC_resetPosition
         self._resetPosition_dll.errcheck = errcheck
-        # Not implemented stop.
+        # Not implemented -- stop.
 
-        discover_ANC350()
-
-        self.device = self.connect()
-
-        print('__init__ done')
+        self.devNo = devNo
+        self.device = self.connect(self.devNo)
 
     def __enter__(self):
         print('Enter __enter__')
@@ -631,18 +660,12 @@ class Positioner_ANC350:
 
         return featureSync, featureLockin, featureDuty, featureApp
 
-    def getDeviceInfo(self, devNo=0):
+    def getDeviceInfo(self):
         '''
         Returns available information about a device. The function can not be
         called before ANC_discover but the devices don't have to be connected.
         All pointers to output parameters may be zero to ignore the respective
         value.
-
-        Parameters
-        ----------
-        devNo : int
-            Sequence number of the device. Must be smaller than the devCount
-            from the last ANC_discover call. Default: 0.
 
         Returns
         -------
@@ -666,7 +689,7 @@ class Positioner_ANC350:
         address = ctypes.create_string_buffer(32)
         connected = ctypes.c_int()
 
-        self._getDeviceInfo_dll(ctypes.c_uint(devNo),
+        self._getDeviceInfo_dll(ctypes.c_uint(self.devNo),
                                 ctypes.byref(devType),
                                 ctypes.byref(id_),
                                 ctypes.byref(serialNo),
@@ -679,7 +702,7 @@ class Positioner_ANC350:
               'Hardware ID {:}\n'
               'Serial No   {:}\n'
               'Address     {:}\n'
-              'Connected   {:}'.format(devNo,
+              'Connected   {:}'.format(self.devNo,
                                        devType.value,
                                        id_.value,
                                        serialNo.value.decode('utf-8'),
@@ -1020,9 +1043,20 @@ class Positioner_ANC350:
                                   ctypes.c_int(backward))
 
 if __name__ == '__main__':
-    posi = Positioner_ANC350()
-    posi.getAxisStatus(2)
-    posi.getDeviceInfo()
-    posi.getDeviceConfig()
-    posi.disconnect()
 
+    ANC350_devcount = discover_ANC350()
+    assert ANC350_devcount == 2
+
+    posi1 = Positioner_ANC350(0)
+    posi2 = Positioner_ANC350(1)
+
+    posi1.getAxisStatus(0)
+    posi1.getDeviceInfo()
+    posi1.getDeviceConfig()
+
+    posi2.getAxisStatus(2)
+    posi2.getDeviceInfo()
+    posi2.getDeviceConfig()
+
+    posi1.disconnect()
+    posi2.disconnect()
