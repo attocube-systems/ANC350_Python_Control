@@ -208,6 +208,14 @@ class Positioner_ANC350:
     Class of a positioner connected to the ANC350.
     '''
     def __init__(self, devNo=0):
+        '''
+        Initialises the device.
+
+        Parameters
+        ----------
+        devNo : int
+            Device number to be initialised. Default: 0
+        '''
         anc = load_ANC350dll()
 
         # Aliases for the functions from the dll. For handling return
@@ -582,15 +590,16 @@ class Positioner_ANC350:
                                 ctypes.byref(eotBwd),
                                 ctypes.byref(error))
 
-        print('Status of axis {:}\n'
-              '----------------\n'
+        print('Status of axis {:}, device # {:}\n'
+              '-----------------------------\n'
               'Connected          {:}\n'
               'Enabled            {:}\n'
               'Moving             {:}\n'
               'Target             {:}\n'
               'End of travel (fw) {:}\n'
               'End of travel (bw) {:}\n'
-              'Error state        {:}'.format(axisNo,
+              'Error state        {:}'.format(self.devNo,
+                                              axisNo,
                                               connected.value,
                                               enabled.value,
                                               moving.value,
@@ -648,12 +657,13 @@ class Positioner_ANC350:
         featureDuty = int((0x04 & features.value) / 4)
         featureApp = int((0x08 & features.value) / 8)
 
-        print('Device configuration\n'
-              '--------------------\n'
+        print('Configuration of device # {}\n'
+              '---------------------------\n'
               'Sync   {:}\n'
               'Lockin {:}\n'
               'Duty   {:}\n'
-              'App    {:}\n'.format(featureSync,
+              'App    {:}\n'.format(self.devNo,
+                                    featureSync,
                                     featureLockin,
                                     featureDuty,
                                     featureApp))
@@ -696,7 +706,7 @@ class Positioner_ANC350:
                                 ctypes.byref(address),
                                 ctypes.byref(connected))
 
-        print('Device info of # {:}\n'
+        print('Info of device # {:}\n'
               '------------------\n'
               'Type        {:}\n'
               'Hardware ID {:}\n'
