@@ -21,7 +21,7 @@ def errcheck(code, func, args):
     func : function
         Function that is called
     args : list
-        Paramaters passed to the function
+        Parameters passed to the function
 
     Returns
     -------
