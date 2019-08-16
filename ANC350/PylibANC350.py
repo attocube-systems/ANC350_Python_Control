@@ -10,7 +10,7 @@ import os
 import warnings
 import platform
 
-def errcheck(code, func, args):
+def ANC_errcheck(code, func, args):
     '''
     Translates the errors returned from the dll functions.
 
@@ -169,7 +169,7 @@ def discover_ANC350(ifaces=3):
     anc = load_ANC350dll()
 
     discover_dll = anc.ANC_discover
-    discover_dll.errcheck = errcheck
+    discover_dll.errcheck = ANC_errcheck
 
     devCount = ctypes.c_int()
     discover_dll(ctypes.c_int(ifaces),
@@ -199,7 +199,7 @@ def registerExternalIp(hostname):
     anc = load_ANC350dll()
 
     registerExternalIp_dll = anc.ANC_registerExternalIp
-    registerExternalIp_dll.errcheck = errcheck
+    registerExternalIp_dll.errcheck = ANC_errcheck
 
     registerExternalIp_dll(ctypes.c_char_p(hostname)) # @todo To check
 
@@ -222,100 +222,100 @@ class Positioner_ANC350:
         # values: '.errcheck' is an attribute from ctypes.
         # Taken from anc350res.h,v 1.12 2017/08/04 13:59:18
         self._configureAQuadBIn_dll = anc.ANC_configureAQuadBIn
-        self._configureAQuadBIn_dll.errcheck = errcheck
+        self._configureAQuadBIn_dll.errcheck = ANC_errcheck
         self._configureAQuadBOut_dll = anc.ANC_configureAQuadBOut
-        self._configureAQuadBOut_dll.errcheck = errcheck
+        self._configureAQuadBOut_dll.errcheck = ANC_errcheck
         self._configureExtTrigger_dll = anc.ANC_configureExtTrigger
-        self._configureExtTrigger_dll.errcheck = errcheck
+        self._configureExtTrigger_dll.errcheck = ANC_errcheck
         self._configureNslTrigger_dll = anc.ANC_configureNslTrigger
-        self._configureNslTrigger_dll.errcheck = errcheck
+        self._configureNslTrigger_dll.errcheck = ANC_errcheck
         self._configureNslTriggerAxis_dll = anc.ANC_configureNslTriggerAxis
-        self._configureNslTriggerAxis_dll.errcheck = errcheck
+        self._configureNslTriggerAxis_dll.errcheck = ANC_errcheck
         self._configureRngTrigger_dll = anc.ANC_configureRngTrigger
-        self._configureRngTrigger_dll.errcheck = errcheck
+        self._configureRngTrigger_dll.errcheck = ANC_errcheck
         self._configureRngTriggerEps_dll = anc.ANC_configureRngTriggerEps
-        self._configureRngTriggerEps_dll.errcheck = errcheck
+        self._configureRngTriggerEps_dll.errcheck = ANC_errcheck
         self._configureRngTriggerPol_dll = anc.ANC_configureRngTriggerPol
-        self._configureRngTriggerPol_dll.errcheck = errcheck
+        self._configureRngTriggerPol_dll.errcheck = ANC_errcheck
         self._connect_dll = anc.ANC_connect
-        self._connect_dll.errcheck = errcheck
+        self._connect_dll.errcheck = ANC_errcheck
         self._disconnect_dll = anc.ANC_disconnect
-        self._disconnect_dll.errcheck = errcheck
+        self._disconnect_dll.errcheck = ANC_errcheck
         self._getActuatorName_dll = anc.ANC_getActuatorName
-        self._getActuatorName_dll.errcheck = errcheck
+        self._getActuatorName_dll.errcheck = ANC_errcheck
         self._getActuatorType_dll = anc.ANC_getActuatorType
-        self._getActuatorType_dll.errcheck = errcheck
+        self._getActuatorType_dll.errcheck = ANC_errcheck
         self._getAmplitude_dll = anc.ANC_getAmplitude
-        self._getAmplitude_dll.errcheck = errcheck
+        self._getAmplitude_dll.errcheck = ANC_errcheck
         self._getAxisStatus_dll = anc.ANC_getAxisStatus
-        self._getAxisStatus_dll.errcheck = errcheck
+        self._getAxisStatus_dll.errcheck = ANC_errcheck
         try:
             self._getDcVoltage_dll = anc.ANC_getDcVoltage
-            self._getDcVoltage_dll.errcheck = errcheck
+            self._getDcVoltage_dll.errcheck = ANC_errcheck
         except:
             warnings.warn('ANC_getDcVoltage not available')
         self._getDeviceConfig_dll = anc.ANC_getDeviceConfig
-        self._getDeviceConfig_dll.errcheck = errcheck
+        self._getDeviceConfig_dll.errcheck = ANC_errcheck
         self._getDeviceInfo_dll = anc.ANC_getDeviceInfo
-        self._getDeviceInfo_dll.errcheck = errcheck
+        self._getDeviceInfo_dll.errcheck = ANC_errcheck
         self._getFirmwareVersion_dll = anc.ANC_getFirmwareVersion
-        self._getFirmwareVersion_dll.errcheck = errcheck
+        self._getFirmwareVersion_dll.errcheck = ANC_errcheck
         self._getFrequency_dll = anc.ANC_getFrequency
-        self._getFrequency_dll.errcheck = errcheck
+        self._getFrequency_dll.errcheck = ANC_errcheck
         self._getPosition_dll = anc.ANC_getPosition
-        self._getPosition_dll.errcheck = errcheck
+        self._getPosition_dll.errcheck = ANC_errcheck
         self._loadLutFile_dll = anc.ANC_loadLutFile
-        self._loadLutFile_dll.errcheck = errcheck
+        self._loadLutFile_dll.errcheck = ANC_errcheck
         self._measureCapacitance_dll = anc.ANC_measureCapacitance
-        self._measureCapacitance_dll.errcheck = errcheck
+        self._measureCapacitance_dll.errcheck = ANC_errcheck
         self._saveParams_dll = anc.ANC_saveParams
-        self._saveParams_dll.errcheck = errcheck
+        self._saveParams_dll.errcheck = ANC_errcheck
         self._selectActuator_dll = anc.ANC_selectActuator
-        self._selectActuator_dll.errcheck = errcheck
+        self._selectActuator_dll.errcheck = ANC_errcheck
         self._setAmplitude_dll = anc.ANC_setAmplitude
-        self._setAmplitude_dll.errcheck = errcheck
+        self._setAmplitude_dll.errcheck = ANC_errcheck
         self._setAxisOutput_dll = anc.ANC_setAxisOutput
-        self._setAxisOutput_dll.errcheck = errcheck
+        self._setAxisOutput_dll.errcheck = ANC_errcheck
         self._setDcVoltage_dll = anc.ANC_setDcVoltage
-        self._setDcVoltage_dll.errcheck = errcheck
+        self._setDcVoltage_dll.errcheck = ANC_errcheck
         self._setFrequency_dll = anc.ANC_setFrequency
-        self._setFrequency_dll.errcheck = errcheck
+        self._setFrequency_dll.errcheck = ANC_errcheck
         try:
             self._getLutName_dll = anc.ANC_getLutName
-            self._getLutName_dll.errcheck = errcheck
+            self._getLutName_dll.errcheck = ANC_errcheck
         except:
             warnings.warn('ANC_getLutName not available')
         self._setTargetGround_dll = anc.ANC_setTargetGround
-        self._setTargetGround_dll.errcheck = errcheck
+        self._setTargetGround_dll.errcheck = ANC_errcheck
         self._setTargetPosition_dll = anc.ANC_setTargetPosition
-        self._setTargetPosition_dll.errcheck = errcheck
+        self._setTargetPosition_dll.errcheck = ANC_errcheck
         self._setTargetRange_dll = anc.ANC_setTargetRange
-        self._setTargetRange_dll.errcheck = errcheck
+        self._setTargetRange_dll.errcheck = ANC_errcheck
         self._startAutoMove_dll = anc.ANC_startAutoMove
-        self._startAutoMove_dll.errcheck = errcheck
+        self._startAutoMove_dll.errcheck = ANC_errcheck
         self._startContinousMove_dll = anc.ANC_startContinousMove
-        self._startContinousMove_dll.errcheck = errcheck
+        self._startContinousMove_dll.errcheck = ANC_errcheck
         self._startSingleStep_dll = anc.ANC_startSingleStep
-        self._startSingleStep_dll.errcheck = errcheck
+        self._startSingleStep_dll.errcheck = ANC_errcheck
         # Method count: 35 without ANC_discover and ANC_registerExternalIp
 
         # Not implemented -- start (found in non-res products):
         self._configureDutyCycle_dll = anc.ANC_configureDutyCycle
-        self._configureDutyCycle_dll.errcheck = errcheck
+        self._configureDutyCycle_dll.errcheck = ANC_errcheck
         self._enableRefAutoReset_dll = anc.ANC_enableRefAutoReset
-        self._enableRefAutoReset_dll.errcheck = errcheck
+        self._enableRefAutoReset_dll.errcheck = ANC_errcheck
         self._enableRefAutoUpdate_dll = anc.ANC_enableRefAutoUpdate
-        self._enableRefAutoUpdate_dll.errcheck = errcheck
+        self._enableRefAutoUpdate_dll.errcheck = ANC_errcheck
         self._enableSensor_dll = anc.ANC_enableSensor
-        self._enableSensor_dll.errcheck = errcheck
+        self._enableSensor_dll.errcheck = ANC_errcheck
         self._enableTrace_dll = anc.ANC_enableTrace
-        self._enableTrace_dll.errcheck = errcheck
+        self._enableTrace_dll.errcheck = ANC_errcheck
         self._getRefPosition_dll = anc.ANC_getRefPosition
-        self._getRefPosition_dll.errcheck = errcheck
+        self._getRefPosition_dll.errcheck = ANC_errcheck
         self._moveReference_dll = anc.ANC_moveReference
-        self._moveReference_dll.errcheck = errcheck
+        self._moveReference_dll.errcheck = ANC_errcheck
         self._resetPosition_dll = anc.ANC_resetPosition
-        self._resetPosition_dll.errcheck = errcheck
+        self._resetPosition_dll.errcheck = ANC_errcheck
         # Not implemented -- stop.
 
         self.devNo = devNo
