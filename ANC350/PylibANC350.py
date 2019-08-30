@@ -1055,18 +1055,13 @@ class Positioner_ANC350:
 if __name__ == '__main__':
 
     ANC350_devcount = discover_ANC350()
-    assert ANC350_devcount == 2
+    assert ANC350_devcount == 1
 
     posi1 = Positioner_ANC350(0)
-    posi2 = Positioner_ANC350(1)
+    #posi2 = Positioner_ANC350(1)
 
     posi1.getAxisStatus(0)
     posi1.getDeviceInfo()
     posi1.getDeviceConfig()
 
-    posi2.getAxisStatus(2)
-    posi2.getDeviceInfo()
-    posi2.getDeviceConfig()
-
     posi1.disconnect()
-    posi2.disconnect()
