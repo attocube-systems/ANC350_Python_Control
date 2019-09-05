@@ -590,8 +590,8 @@ class Positioner_ANC350:
                                 ctypes.byref(eotBwd),
                                 ctypes.byref(error))
 
-        print('Status of axis {:}, device # {:}\n'
-              '-----------------------------\n'
+        print('Status of device # {:}, axis {:}\n'
+              '----------------------------\n'
               'Connected          {:}\n'
               'Enabled            {:}\n'
               'Moving             {:}\n'
@@ -1060,8 +1060,21 @@ if __name__ == '__main__':
     posi1 = Positioner_ANC350(0)
     #posi2 = Positioner_ANC350(1)
 
-    posi1.getAxisStatus(0)
+    posi1.getAxisStatus(2)
     posi1.getDeviceInfo()
     posi1.getDeviceConfig()
+
+    posi1.measureCapacitance(2)
+
+    posi1.setAxisOutput(2, 1, 0)
+
+#    posi1.selectActuator(2, 17)
+    print(posi1.getPosition(2))
+    posi1.startSingleStep(2, 0)
+
+    posi1.startContinuousMove(2, 1, 1)
+    import time
+    time.sleep(1)
+    posi1.startContinuousMove(2, 0, 0)
 
     posi1.disconnect()
