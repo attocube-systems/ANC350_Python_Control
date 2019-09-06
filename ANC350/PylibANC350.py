@@ -2,7 +2,7 @@
 '''
 Created on Fri Jul  5 16:11:11 2019
 
-@author: schaecl
+@author: Clemens Schaefermeier, attocube systems AG
 '''
 
 import ctypes
@@ -557,19 +557,19 @@ class Positioner_ANC350:
 
         Returns
         -------
-        connected :
+        connected : int
             If the axis is connected to a sensor
-        enabled :
+        enabled : int
             If the axis voltage output is enabled
-        moving :
+        moving : int
             If the axis is moving
-        target :
+        target : int
             If the target is reached in automatic positioning
-        eotFwd :
+        eotFwd : int
             If end of travel detected in forward direction
-        eotBwd :
+        eotBwd : int
             If end of travel detected in backward direction
-        error :
+        error : int
             If the axis' sensor is in error state
         '''
         connected = ctypes.c_int()
@@ -1005,6 +1005,7 @@ class Positioner_ANC350:
         Switches automatic moving (i.e. following the target position) on or off
 
         Parameters
+        ----------
         axisNo : int
             Axis number (0 ... 2)
         enable : int
@@ -1027,7 +1028,7 @@ class Positioner_ANC350:
         ----------
         axisNo : int
             Axis number (0 ... 2)
-        start L int
+        start : int
             Starts (1) or stops (0) the motion
         backward : int
             If the move direction is forward (0) or backward (1)
@@ -1068,7 +1069,7 @@ if __name__ == '__main__':
 
     posi1.setAxisOutput(2, 1, 0)
 
-#    posi1.selectActuator(2, 17)
+#    posi1.selectActuator(2, 1)
     print(posi1.getPosition(2))
     posi1.startSingleStep(2, 0)
 
