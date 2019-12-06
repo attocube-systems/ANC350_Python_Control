@@ -217,7 +217,6 @@ class Positioner_ANC350:
             Device number to be initialised. Default: 0
         '''
         anc = load_ANC350dll()
-
         # Aliases for the functions from the dll. For handling return
         # values: '.errcheck' is an attribute from ctypes.
         # Taken from anc350res.h,v 1.12 2017/08/04 13:59:18
@@ -249,11 +248,8 @@ class Positioner_ANC350:
         self._getAmplitude_dll.errcheck = ANC_errcheck
         self._getAxisStatus_dll = anc.ANC_getAxisStatus
         self._getAxisStatus_dll.errcheck = ANC_errcheck
-        try:
-            self._getDcVoltage_dll = anc.ANC_getDcVoltage
-            self._getDcVoltage_dll.errcheck = ANC_errcheck
-        except:
-            warnings.warn('ANC_getDcVoltage not available')
+        self._getDcVoltage_dll = anc.ANC_getDcVoltage
+        self._getDcVoltage_dll.errcheck = ANC_errcheck
         self._getDeviceConfig_dll = anc.ANC_getDeviceConfig
         self._getDeviceConfig_dll.errcheck = ANC_errcheck
         self._getDeviceInfo_dll = anc.ANC_getDeviceInfo
