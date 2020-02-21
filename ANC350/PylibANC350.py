@@ -116,6 +116,7 @@ def load_ANC350dll():
         RuntimeError('Can not determine OS bit-ness')
 
     if os_name == 'Windows':
+        # Note: MSVCP100.dll is required to work with the dll
         lib_name_usb = 'libusb0.dll'
         if bitness == '64bit':
             lib_path = os.path.join(root_path, 'win64')
@@ -811,7 +812,7 @@ class Positioner_ANC350:
         '''
         self._loadLutFile_dll(self.device,
                               ctypes.c_uint(axisNo),
-                              ctypes.c_char_p(fileName)) # @todo Not checked
+                              ctypes.c_char_p(fileName.encode('utf-8')))
 
     def measureCapacitance(self, axisNo):
         '''
@@ -1063,15 +1064,20 @@ if __name__ == '__main__':
 
     posi1.measureCapacitance(2)
 
-    posi1.setAxisOutput(2, 1, 0)
+    fname = 'ANPx101_01_123.LUT'
+    assert os.path.isfile(fname)
 
-#    posi1.selectActuator(2, 1)
-    print(posi1.getPosition(2))
-    posi1.startSingleStep(2, 0)
+    posi1.loadLutFile(0, fname)
 
-    posi1.startContinuousMove(2, 1, 1)
-    import time
-    time.sleep(1)
-    posi1.startContinuousMove(2, 0, 0)
+    posi1.setAxisOutput(0, 1, 0)
+
+    # posi1.selectActuator(2, 1)
+    print(posi1.getPosition(0))
+    # posi1.startSingleStep(2, 0)
+
+    # posi1.startContinuousMove(2, 1, 1)
+    # import time
+    # time.sleep(1)
+    # posi1.startContinuousMove(2, 0, 0)
 
     posi1.disconnect()
