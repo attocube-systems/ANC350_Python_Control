@@ -1058,20 +1058,22 @@ if __name__ == '__main__':
     posi1 = Positioner_ANC350(0)
     #posi2 = Positioner_ANC350(1)
 
-    posi1.getAxisStatus(2)
+    posi1.getAxisStatus(0)
     posi1.getDeviceInfo()
     posi1.getDeviceConfig()
 
-    posi1.measureCapacitance(2)
+    posi1.measureCapacitance(0)
 
     fname = 'ANPx101_01_123.LUT'
     assert os.path.isfile(fname)
 
-    posi1.loadLutFile(0, fname)
+    for i in range(100):
+        posi1.loadLutFile(0, fname)
 
     posi1.setAxisOutput(0, 1, 0)
 
     # posi1.selectActuator(2, 1)
+
     print(posi1.getPosition(0))
     # posi1.startSingleStep(2, 0)
 
