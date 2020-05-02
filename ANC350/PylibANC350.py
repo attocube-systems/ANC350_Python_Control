@@ -10,13 +10,13 @@ import os
 import warnings
 import platform
 
-def ANC_errcheck(code, func, args):
+def ANC_errcheck(ret_code, func, args):
     '''
     Translates the errors returned from the dll functions.
 
     Parameters
     ----------
-    code : int
+    ret_code : int
         Return value from the function
     func : function
         Function that is called
@@ -25,75 +25,31 @@ def ANC_errcheck(code, func, args):
 
     Returns
     -------
-    code : int
+    str
+        String of the return code
     '''
     # List of error types, manually imported from the header file anc350.h
-    ANC_Ok = 0            # No error
-    ANC_Error = -1        # Unknown / other error
-    ANC_Timeout = 1       # Timeout during data retrieval
-    ANC_NotConnected = 2  # No contact with the positioner via USB
-    ANC_DriverError = 3   # Error in the driver response
-    ANC_DeviceLocked = 7  # A connection attempt failed because the device is already in use
-    ANC_Unknown = 8       # Unknown error
-    ANC_NoDevice = 9      # Invalid device number used in call
-    ANC_NoAxis = 10       # Invalid axis number in function call
-    ANC_OutOfRange = 11   # Parameter in call is out of range
-    ANC_NotAvailable = 12 # Function not available for device type
-    ANC_FileError = 13    # Error opening or interpreting a file
+    ANC_RC = {
+        0 : "No error",
+        -1 : "Unknown / other error",
+        1 : "Timeout during data retrieval",
+        2 : "No contact with the positioner via USB",
+        3 : "Error in the driver response",
+        7 : "A connection attempt failed because the device is already in use",
+        8 : "Unknown error",
+        9 : "Invalid device number used in call",
+        10 : "Invalid axis number in function call",
+        11 : "Parameter in call is out of range",
+        12 : "Function not available for device type",
+        13 : "Error opening or interpreting a file"}
 
     assert str(type(func)) == "<class 'ctypes.CDLL.__init__.<locals>._FuncPtr'>"
 
-    if code == ANC_Ok:
-        pass
-    elif code == ANC_Error:
-        raise RuntimeError('Error: unspecific error in ' +
+    if ret_code != 0:
+        raise RuntimeError('Error: {:} '.format(ANC_RC[ret_code]) +
                            str(func.__name__) +
                            ' with parameters: ' + str(args))
-    elif code == ANC_Timeout:
-        raise RuntimeError('Error: timeout error in ' +
-                           str(func.__name__) +
-                           ' with parameters: ' + str(args))
-    elif code == ANC_NotConnected:
-        raise RuntimeError('Error: not connected error in ' +
-                           str(func.__name__) +
-                           ' with parameters: ' + str(args))
-    elif code == ANC_DriverError:
-        raise RuntimeError('Error: driver error in ' +
-                           str(func.__name__) +
-                           ' with parameters: ' + str(args))
-    elif code == ANC_DeviceLocked:
-        raise RuntimeError('Error: device locked in ' +
-                           str(func.__name__) +
-                           ' with parameters: ' + str(args))
-    elif code == ANC_Unknown:
-        raise RuntimeError('Error: unknown error in ' +
-                           str(func.__name__) +
-                           ' with parameters: ' + str(args))
-    elif code == ANC_NoDevice:
-        raise RuntimeError('Error: invalid device number in ' +
-                           str(func.__name__) +
-                           ' with parameters: ' + str(args))
-    elif code == ANC_NoAxis:
-        raise RuntimeError('Error: invalid axis number in ' +
-                           str(func.__name__) +
-                           ' with parameters: ' + str(args))
-    elif code == ANC_OutOfRange:
-        raise RuntimeError('Error: parameter out of range in ' +
-                           str(func.__name__) +
-                           ' with parameters: ' + str(args))
-    elif code == ANC_NotAvailable:
-        raise RuntimeError('Error: function not available in ' +
-                           str(func.__name__) +
-                           ' with parameters: ' + str(args))
-    elif code == ANC_FileError:
-        raise RuntimeError('Error: file not available in ' +
-                           str(func.__name__) +
-                           ' with parameters: ' + str(args))
-    else:
-        raise RuntimeError('Error: this should not happen in ' +
-                           str(func.__name__) +
-                           ' with parameters: ' + str(args))
-    return code
+    return ANC_RC[ret_code]
 
 def load_ANC350dll():
     '''
